@@ -23,8 +23,9 @@ class NeuralNetwork(nn.Module):
             nn.ReLU(),
             nn.Linear(80, 80),
             nn.ReLU(),
-            nn.Linear(80, 1),
-            nn.ReLU()
+            nn.Linear(80, 80),
+            nn.ReLU(),
+            nn.Linear(80, 1)
         )
 
     def forward(self, x):  # Ett steg beräkning, x = [xi, xi+1, yi]
