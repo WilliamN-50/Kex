@@ -5,13 +5,13 @@ import numpy as np
 
 
 def func(t, y):
-    return -y
+    return 3 / 2 * y / (t + 1) + np.sqrt(t + 1)
 
 
 def local_truncation_error(data, func):
     # R function
-    delta_x = data[1] - data[0]
-    return 1/delta_x**2 * (data[3] - data[2] - delta_x * func(data[0], data[2]))
+    # delta_x = data[1] - data[0]
+    return 1/data[2]**2 * (data[4] - data[3] - data[2] * func(data[0], data[3]))
 
 
 class TrainAndTest:
@@ -36,7 +36,7 @@ class TrainAndTest:
 
             # Compute prediction- and truncation- error
             # print(type(torch.narrow(data, 0, 0, 3)))
-            batch_pred[0, index % self.batch_size] = self.model(data[:3])
+            batch_pred[0, index % self.batch_size] = self.model(data[:4])
             # print("here")
             batch_truncation_error[0, index % self.batch_size] = local_truncation_error(data, func)
 
@@ -81,13 +81,15 @@ class TrainAndTest:
 
 
 def main():
-    in_data = np.loadtxt("test_output.csv")
+    in_data = np.load("outfile_exempel.npy")
+    in_data = in_data[0]
+    print(in_data)
     batch_size = 500
     # device = "cuda" if torch.cuda.is_available() else "cpu"
     device = "cpu"
     print(f"Using {device} device")
     train = TrainAndTest(in_data=in_data,
-                         batch_size=batch_size, device=device, lr=1e-4)
+                         batch_size=batch_size, device=device, lr=1e-5)
     train.model.train()
     for i in range(50):
         print("____________________")

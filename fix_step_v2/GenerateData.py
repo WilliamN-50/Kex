@@ -29,18 +29,19 @@ class DifferentialEquation:
         ____________________________
         Build a new data structure by combining data points from in_file.
         ____________________________
+        x0, x1, delta_x, y0_1, y0_2, y0_..n, y1_1, y1_2, y1_...n
         """
-        rows = in_data.shape[0]
-        out_data = np.zeros((self.num_y, rows*(rows-1)//2, 5))
+        rows = in_data.shape[0]  # indata antalet [x,y]
+        out_data = np.zeros((rows*(rows-1)//2, 3+2*self.num_y))  # 3 = the number of [x0, x1, delta_X]
         n = 0
         for i in range(rows):
             for j in range(i+1, rows):
+                out_data[n][0] = in_data[i][0]
+                out_data[n][1] = in_data[j][0]
+                out_data[n][2] = in_data[j][0] - in_data[i][0]
                 for k in range(self.num_y):
-                    out_data[k][n][0] = in_data[i][0]
-                    out_data[k][n][1] = in_data[j][0]
-                    out_data[k][n][2] = in_data[j][0] - in_data[i][0]
-                    out_data[k][n][3] = in_data[i][1 + k]
-                    out_data[k][n][4] = in_data[j][1 + k]
+                    out_data[n][3+k] = in_data[i][1+k]
+                    out_data[n][3+self.num_y+k] = in_data[j][1+k]
                 n += 1
         if save_to_file:
             np.save(out_file, out_data)
@@ -55,7 +56,7 @@ class Diff_eq_0(DifferentialEquation):
 
 class Diff_eq_1(DifferentialEquation):
     def func(self, x, y):
-        return [y[0] - y[0]*y[1], -y[1] + y[0]*y[1]]
+        return np.array([y[0] - y[0]*y[1], -y[1] + y[0]*y[1]])
 
 
 class Diff_eq_2(DifferentialEquation):
@@ -66,12 +67,9 @@ class Diff_eq_2(DifferentialEquation):
 def main():
     d_e0 = Diff_eq_1(t_0=0, t_end=10, y_0=[1, 2])
     data = d_e0.integrate(t_points=np.arange(0, 10, 0.1))
-    reshaped_data = d_e0.reshape_data(data)
-    print(data)
-    print(reshaped_data)
-
-
-
+    reshaped_data = d_e0.reshape_data(data, out_file='outfile_exempel.npy', save_to_file=True)
+    # print(data)
+    # print(reshaped_data[4948:4950])
 
 
 if __name__ == '__main__':
