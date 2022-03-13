@@ -36,7 +36,7 @@ class Diff_eq_2(DifferentialEquation):
 
 
 def main():
-    d_e0 = Diff_eq_0(t_0=0, t_end=10, y_0=[1])
+    d_e0 = Diff_eq_2(t_0=0, t_end=10, y_0=[1])
     sol_0 = d_e0.integrate(t_points=np.arange(0, 10, 0.1))
     out_data = np.array([sol_0.t, sol_0.y[0]]).T
     # print(out_data)

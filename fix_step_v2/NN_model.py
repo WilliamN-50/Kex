@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-from torchvision.transforms import ToTensor
 
 # Define model
 
@@ -29,9 +28,9 @@ class NeuralNetwork(nn.Module):
         )
 
     def forward(self, x):  # Ett steg beräkning, x = [xi, xi+1, yi]
-        result = self.linear_result_stack(x)
-        # print(result)
-        return result.detach().numpy()
+        x = self.linear_result_stack(x)
+        return x
+        # return result.detach().numpy()
 
 
 def main():
