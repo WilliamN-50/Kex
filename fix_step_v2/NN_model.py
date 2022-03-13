@@ -8,7 +8,7 @@ class NeuralNetwork(nn.Module):
     def __init__(self):
         super(NeuralNetwork, self).__init__()  # Take the init from nn.Module
         self.linear_result_stack = nn.Sequential(
-            nn.Linear(3, 80),
+            nn.Linear(4, 80),
             nn.ReLU(),
             nn.Linear(80, 80),
             nn.ReLU(),
