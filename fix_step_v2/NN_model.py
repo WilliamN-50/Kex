@@ -7,6 +7,12 @@ import GenerateData as gd
 
 
 class NeuralNetwork(nn.Module):
+    """
+    ____________________________
+    The NeuralNetwork class.
+    Constructs a NN model for predicting the local error of the Euler method.
+    ____________________________
+    """
     def __init__(self, num_y):
         super(NeuralNetwork, self).__init__()  # Take the init from nn.Module
         self.linear_result_stack = nn.Sequential(
@@ -29,12 +35,18 @@ class NeuralNetwork(nn.Module):
             nn.Linear(80, num_y)
         )
 
-    def forward(self, x):  # Ett steg beräkning, x = [xi, xi+1, yi]
+    def forward(self, x):
         x = self.linear_result_stack(x)
         return x
 
 
 class TrainAndTest:
+    """
+    ____________________________
+    The TrainAndTest class.
+    Trains and tests the NeuralNetwork model.
+    ____________________________
+    """
     def __init__(self, diff_eq, in_data, batch_size, device, train_ratio=0.85, lr=1e-3):
         self.model = NeuralNetwork(diff_eq.num_y).to(device)
         self.diff_eq = diff_eq
@@ -53,6 +65,11 @@ class TrainAndTest:
         return train_data, test_data
 
     def nn_train(self):
+        """
+        ____________________________
+        Training function to train the NeuralNetwork.
+        ____________________________
+        """
         self.model.train()
         np.random.shuffle(self.train_data)
 
@@ -65,8 +82,8 @@ class TrainAndTest:
 
             # Compute prediction- and truncation- error
             batch_pred[index % self.batch_size, :] = self.model(data[: 3 + self.diff_eq.num_y])
-            batch_truncation_error[index % self.batch_size, :] = local_truncation_error(data, self.diff_eq.func,
-                                                                                        self.diff_eq.num_y)
+            batch_truncation_error[index % self.batch_size, :] = _local_truncation_error(data, self.diff_eq.func,
+                                                                                         self.diff_eq.num_y)
 
             if index > 0 and (index+1) % self.batch_size == 0:
                 loss = 0
@@ -98,6 +115,11 @@ class TrainAndTest:
             print(f"loss:{loss:>7f} [{current:>5d}/{self.train_data.shape[0]:>5d}]")
 
     def nn_test(self):
+        """
+        ____________________________
+        Testing function to test the training of  the NeuralNetwork.
+        ____________________________
+        """
         self.model.eval()
         torch_data = torch.from_numpy(self.test_data).float().to(self.device)
         with torch.no_grad():
@@ -108,7 +130,7 @@ class TrainAndTest:
             for index, data in enumerate(torch_data):
                 # Compute prediction- and truncation- error
                 batch_pred[index, :] = self.model(data[: 3 + self.diff_eq.num_y])
-                batch_truncation_error[index, :] = local_truncation_error(data, self.diff_eq.func, self.diff_eq.num_y)
+                batch_truncation_error[index, :] = _local_truncation_error(data, self.diff_eq.func, self.diff_eq.num_y)
 
             test_loss = 0
             for i in range(self.diff_eq.num_y):
@@ -120,7 +142,7 @@ class TrainAndTest:
             print(f"test_loss:{test_loss:>7f} [{current:>5d}/{self.test_data.shape[0]:>5d}]")
 
 
-def local_truncation_error(data, func, num_y):
+def _local_truncation_error(data, func, num_y):
     # R function
     y_first = data[3:3+num_y]
     y_second = data[3+num_y:]

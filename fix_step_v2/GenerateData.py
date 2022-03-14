@@ -3,6 +3,12 @@ from scipy.integrate import solve_ivp
 
 
 class DifferentialEquation:
+    """
+    ____________________________
+    The DifferentialEquation class.
+    Generates data for the NeuralNetwork model.
+    ____________________________
+    """
     def __init__(self, t_0, t_end, y_0):
         self.t_0 = t_0
         self.t_end = t_end
@@ -13,6 +19,11 @@ class DifferentialEquation:
         pass
 
     def integrate(self, method="RK45", t_points=None, out_file=None, save_to_file=False):
+        """
+        ____________________________
+        Integrates the differential equation.
+        ____________________________
+        """
         solution = solve_ivp(self.func, [self.t_0, self.t_end], self.y_0, method=method, t_eval=t_points)
         rows = solution.t.shape[0]
         out_data = np.zeros((rows, 1+self.num_y))
@@ -27,6 +38,7 @@ class DifferentialEquation:
         """
         ____________________________
         Build a new data structure by combining data points from in_file.
+        The output will be used to train and test the NeuralNetwork model.
         ____________________________
         """
         rows = in_data.shape[0]  # indata antalet [x,y]
