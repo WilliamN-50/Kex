@@ -99,7 +99,7 @@ class TrainAndTest:
 
     def nn_test(self):
         self.model.eval()
-        torch_data = torch.from_numpy(self.test_data).float()
+        torch_data = torch.from_numpy(self.test_data).float().to(self.device)
         with torch.no_grad():
 
             batch_truncation_error = torch.empty((self.test_data.shape[0], self.diff_eq.num_y))
