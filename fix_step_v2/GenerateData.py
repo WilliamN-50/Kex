@@ -75,9 +75,10 @@ class Diff_eq_2(DifferentialEquation):
 
 
 def main():
-    d_e0 = Diff_eq_1(t_0=0, t_end=10, y_0=[1, 2])
+    d_e0 = Diff_eq_2(t_0=0, t_end=10, y_0=[1])
     data = d_e0.integrate(t_points=np.arange(0, 10, 0.1))
-    reshaped_data = d_e0.reshape_data(data, out_file='outfile_exempel.npy', save_to_file=True)
+    reshaped_data = d_e0.reshape_data(data, out_file='outfile_exempel.npy', save_to_file=False)
+    print(reshaped_data)
 
 
 if __name__ == '__main__':
