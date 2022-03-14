@@ -36,20 +36,28 @@ class NeuralNetwork(nn.Module):
 
 
 class TrainAndTest:
-    def __init__(self, diff_eq, in_data, batch_size, device, lr=1e-3):
+    def __init__(self, diff_eq, in_data, batch_size, device, train_ratio=0.85, lr=1e-3):
         self.model = NeuralNetwork(diff_eq.num_y)
         self.diff_eq = diff_eq
-        self.in_data = in_data
+        self.train_data, self.test_data = self.split_train_test(in_data, train_ratio)
         self.batch_size = batch_size
         self.loss_fn = nn.L1Loss(reduction="mean")
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.device = device
 
+    @ staticmethod
+    def split_train_test(in_data, ratio):
+        np.random.shuffle(in_data)
+        num_train_data = int(in_data.shape[0]*ratio)
+        train_data = in_data[:num_train_data]
+        test_data = in_data[num_train_data:]
+        return train_data, test_data
+
     def train(self):
         self.model.train()
-        np.random.shuffle(self.in_data)
+        np.random.shuffle(self.train_data)
 
-        torch_data = torch.from_numpy(self.in_data).float()
+        torch_data = torch.from_numpy(self.train_data).float()
 
         batch_truncation_error = torch.empty((self.batch_size, self.diff_eq.num_y))
         batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y))
@@ -76,9 +84,9 @@ class TrainAndTest:
                 batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y))
 
                 loss, current = loss.item(), index+1
-                print(f"loss:{loss:>7f} [{current:>5d}/{len(self.in_data):>5d}]")
+                print(f"loss:{loss:>7f} [{current:>5d}/{self.train_data.shape[0]:>5d}]")
 
-        rest = len(self.in_data) % self.batch_size
+        rest = self.train_data.shape[0] % self.batch_size
         if rest != 0:
             loss = self.loss_fn(batch_pred[:rest], batch_truncation_error[:rest])
 
@@ -87,9 +95,35 @@ class TrainAndTest:
             loss.backward()
             self.optimizer.step()
 
-            loss, current = loss.item(), len(self.in_data)
-            print(f"loss:{loss:>7f} [{current:>5d}/{len(self.in_data):>5d}]")
+            loss, current = loss.item(), self.train_data.shape[0]
+            print(f"loss:{loss:>7f} [{current:>5d}/{self.train_data.shape[0]:>5d}]")
             # print(list(self.model.parameters()))
+
+    def test(self):
+        self.model.eval()
+        torch_data = torch.from_numpy(self.test_data).float()
+        with torch.no_grad():
+
+            batch_truncation_error = torch.empty((self.test_data.shape[0], self.diff_eq.num_y))
+            batch_pred = torch.empty((self.test_data.shape[0], self.diff_eq.num_y))
+
+            for index, data in enumerate(torch_data):
+                # Compute prediction- and truncation- error
+                # print(data[: 3 + self.diff_eq.num_y])
+                batch_pred[index, :] = self.model(data[: 3 + self.diff_eq.num_y])
+                # print("here")
+                # print(local_truncation_error(data, self.diff_eq.func, self.diff_eq.num_y))
+                batch_truncation_error[index, :] = local_truncation_error(data, self.diff_eq.func, self.diff_eq.num_y)
+
+            test_loss = 0
+            for i in range(self.diff_eq.num_y):
+                test_loss = test_loss + self.loss_fn(batch_pred[:, i], batch_truncation_error[:, i]).float()
+
+            test_loss = test_loss / self.diff_eq.num_y
+            # print("here")
+
+            test_loss, current = test_loss.item(), self.test_data.shape[0]
+            print(f"test_loss:{test_loss:>7f} [{current:>5d}/{self.test_data.shape[0]:>5d}]")
 
 
 def local_truncation_error(data, func, num_y):
@@ -101,6 +135,7 @@ def local_truncation_error(data, func, num_y):
     # print(1/data[2]**2 * (y_second - y_first - data[2] * func(data[0], y_first)))
     return 1/data[2]**2 * (y_second - y_first - data[2] * func(data[0], y_first))
 
+
 def main():
     in_data = np.load("outfile_exempel.npy")
     batch_size = 500
@@ -109,12 +144,12 @@ def main():
     print(f"Using {device} device")
     train = TrainAndTest(diff_eq=gd.Diff_eq_1(t_0=0, t_end=10, y_0=[1, 2]), in_data=in_data,
                          batch_size=batch_size, device=device, lr=1e-3)
-    train.model.train()
     for i in range(50):
         print("____________________")
         print("epoch:{}".format(i + 1))
         print("____________________")
         train.train()
+        train.test()
 
 
 if __name__ == '__main__':
