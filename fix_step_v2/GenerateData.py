@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.integrate import solve_ivp
 
@@ -29,7 +28,6 @@ class DifferentialEquation:
         ____________________________
         Build a new data structure by combining data points from in_file.
         ____________________________
-        x0, x1, delta_x, y0_1, y0_2, y0_..n, y1_1, y1_2, y1_...n
         """
         rows = in_data.shape[0]  # indata antalet [x,y]
         out_data = np.zeros((rows*(rows-1)//2, 3+2*self.num_y))  # 3 = the number of [x0, x1, delta_X]
@@ -68,8 +66,6 @@ def main():
     d_e0 = Diff_eq_1(t_0=0, t_end=10, y_0=[1, 2])
     data = d_e0.integrate(t_points=np.arange(0, 10, 0.1))
     reshaped_data = d_e0.reshape_data(data, out_file='outfile_exempel.npy', save_to_file=True)
-    # print(data)
-    # print(reshaped_data[4948:4950])
 
 
 if __name__ == '__main__':
