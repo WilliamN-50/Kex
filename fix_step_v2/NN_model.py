@@ -75,8 +75,8 @@ class TrainAndTest:
 
         torch_data = torch.from_numpy(self.train_data).float().to(self.device)
 
-        batch_truncation_error = torch.empty((self.batch_size, self.diff_eq.num_y)).to(self.device)
-        batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y)).to(self.device)
+        batch_truncation_error = torch.empty((self.batch_size, self.diff_eq.num_y))
+        batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y))
 
         for index, data in enumerate(torch_data):
 
@@ -96,8 +96,8 @@ class TrainAndTest:
                 loss.backward()
                 self.optimizer.step()
 
-                batch_truncation_error = torch.empty((self.batch_size, self.diff_eq.num_y)).to(self.device)
-                batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y)).to(self.device)
+                batch_truncation_error = torch.empty((self.batch_size, self.diff_eq.num_y))
+                batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y))
 
                 loss, current = loss.item(), index+1
                 print(f"loss:{loss:>7f} [{current:>5d}/{self.train_data.shape[0]:>5d}]")
@@ -124,8 +124,8 @@ class TrainAndTest:
         torch_data = torch.from_numpy(self.test_data).float().to(self.device)
         with torch.no_grad():
 
-            batch_truncation_error = torch.empty((self.test_data.shape[0], self.diff_eq.num_y)).to(self.device)
-            batch_pred = torch.empty((self.test_data.shape[0], self.diff_eq.num_y)).to(self.device)
+            batch_truncation_error = torch.empty((self.test_data.shape[0], self.diff_eq.num_y))
+            batch_pred = torch.empty((self.test_data.shape[0], self.diff_eq.num_y))
 
             for index, data in enumerate(torch_data):
                 # Compute prediction- and truncation- error

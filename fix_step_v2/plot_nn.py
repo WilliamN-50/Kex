@@ -4,6 +4,7 @@ import GenerateData as gd
 import NN_model
 import torch
 
+
 class Diff_eq_0(gd.DifferentialEquation):
     def func(self, t, y):
         return -y
@@ -17,6 +18,7 @@ class Diff_eq_1(gd.DifferentialEquation):
 class Diff_eq_2(gd.DifferentialEquation):
     def func(self, t, y):
         return 3/2 * y/(t+1) + np.sqrt(t+1)
+
 
 def main():
     t = np.arange(0, 10, 0.1)
@@ -44,8 +46,8 @@ def main():
     for i in range(len(t2)-1):
         h = t2[i+1] - t2[i]
         # print(y[i, 0])
-        data = torch.tensor([t2[i], t2[i+1], h, y[0, i], y[1, i]]).float()
-        nn_e = nn_tr_te.model(data)
+        data = torch.tensor([t2[i], t2[i+1], h, y[0, i], y[1, i]]).to(device).float()
+        nn_e = nn_tr_te.model(data).cpu()
         nn_e = nn_e.detach().numpy()
         y[:, i+1] = y[:, i] + h*diff_eq.func(t2[i], y[:, i]) + h**2 * nn_e
 
