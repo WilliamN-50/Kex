@@ -29,7 +29,7 @@ def main():
     data_input = diff_eq.reshape_data(data_integrate)
 
     batch_size = 500
-    device = "cpu"
+    device = "cuda"
     nn_tr_te = NN_model.TrainAndTest(diff_eq, data_input, batch_size, device, train_ratio=0.85, lr=1e-3)
     for i in range(50):
         print("____________________")

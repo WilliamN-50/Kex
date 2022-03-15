@@ -75,8 +75,8 @@ class TrainAndTest:
 
         torch_data = torch.from_numpy(self.train_data).float().to(self.device)
 
-        batch_truncation_error = torch.empty((self.batch_size, self.diff_eq.num_y))
-        batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y))
+        batch_truncation_error = torch.empty((self.batch_size, self.diff_eq.num_y)).to(self.device)
+        batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y)).to(self.device)
 
         for index, data in enumerate(torch_data):
 
@@ -96,8 +96,8 @@ class TrainAndTest:
                 loss.backward()
                 self.optimizer.step()
 
-                batch_truncation_error = torch.empty((self.batch_size, self.diff_eq.num_y))
-                batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y))
+                batch_truncation_error = torch.empty((self.batch_size, self.diff_eq.num_y)).to(self.device)
+                batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y)).to(self.device)
 
                 loss, current = loss.item(), index+1
                 print(f"loss:{loss:>7f} [{current:>5d}/{self.train_data.shape[0]:>5d}]")
@@ -124,8 +124,8 @@ class TrainAndTest:
         torch_data = torch.from_numpy(self.test_data).float().to(self.device)
         with torch.no_grad():
 
-            batch_truncation_error = torch.empty((self.test_data.shape[0], self.diff_eq.num_y))
-            batch_pred = torch.empty((self.test_data.shape[0], self.diff_eq.num_y))
+            batch_truncation_error = torch.empty((self.test_data.shape[0], self.diff_eq.num_y)).to(self.device)
+            batch_pred = torch.empty((self.test_data.shape[0], self.diff_eq.num_y)).to(self.device)
 
             for index, data in enumerate(torch_data):
                 # Compute prediction- and truncation- error
@@ -139,11 +139,12 @@ class TrainAndTest:
             test_loss = test_loss / self.diff_eq.num_y
 
             test_loss, current = test_loss.item(), self.test_data.shape[0]
-            print(f"test_loss:{test_loss:>7f} [{current:>5d}/{self.test_data.shape[0]:>5d}]")
+            print(f"test loss:{test_loss:>7f} [{current:>5d}/{self.test_data.shape[0]:>5d}]")
 
 
 def _local_truncation_error(data, func, num_y):
     # R function
+    data = data.cpu()
     y_first = data[3:3+num_y]
     y_second = data[3+num_y:]
     return 1/data[2]**2 * (y_second - y_first - data[2] * func(data[0], y_first))
