@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 import numpy as np
+import matplotlib.pyplot as plt
 import GenerateData as gd
 
 # Define model
@@ -53,6 +54,7 @@ class TrainAndTest:
         self.train_data, self.test_data = self._split_train_test(in_data, train_ratio)
         self.batch_size = batch_size
         self.loss_fn = nn.L1Loss(reduction="mean")
+        self.test_loss = None
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.device = device
 
@@ -138,8 +140,24 @@ class TrainAndTest:
 
             test_loss = test_loss / self.diff_eq.num_y
 
+            if not self.test_loss:
+                self.test_loss = [test_loss]
+            else:
+                self.test_loss.append(test_loss)
+
             test_loss, current = test_loss.item(), self.test_data.shape[0]
             print(f"test loss:{test_loss:>7f} [{current:>5d}/{self.test_data.shape[0]:>5d}]")
+
+    def plot_loss(self, semilogy=False):
+        epoch = np.arange(1, len(self.test_loss)+1)
+        if semilogy:
+            plt.semilogy(epoch, self.test_loss)
+        else:
+            plt.plot(epoch, self.test_loss)
+        plt.title("Test Loss")
+        plt.ylabel("Loss")
+        plt.xlabel("Epoch")
+        plt.show()
 
 
 def _local_truncation_error(data, func, num_y):
@@ -158,13 +176,14 @@ def main():
     print(f"Using {device} device")
     train = TrainAndTest(diff_eq=gd.Diff_eq_1(t_0=0, t_end=10, y_0=[1, 2]), in_data=in_data,
                          batch_size=batch_size, device=device, lr=1e-3)
-    for i in range(50):
+    for i in range(2):
         print("____________________")
         print("epoch:{}".format(i + 1))
         print("____________________")
         train.nn_train()
         train.nn_test()
 
+    train.plot_loss()
 
 if __name__ == '__main__':
     main()
