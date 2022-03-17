@@ -30,13 +30,17 @@ def euler_method(nn_tr_te, device, t0, y0, h, tol, diff_eq, num_step, fix_step=N
         temp0 = np.array([y[j, i] for j in range(diff_eq.num_y)])
         temp1 = np.array([t[0, i], t[0, i]+h, h])
         temp1 = np.append(temp1, temp0)
+
+        #
         data = torch.tensor(temp1).to(device).float()
         nn_e = nn_tr_te.model(data).cpu()
         nn_e = nn_e.detach().numpy()
+
+        #
         if fix_step is not None:
             h = adaptive_euler_h(h, tol, nn_e)
-        # tao = max(abs(nn_e*h**2/2))
-        # h = 0.9*h * min(max(tol/(2*tao)**(1/2), 0.3), 2)
+
+        #
         t[0, i+1] = t[0, i]+h  # t[i+1]
         y[:, i+1] = y[:, i] + h * diff_eq.func(t[0, i], y[:, i]) + h**2 * nn_e  # y[i+1]
 
@@ -71,12 +75,11 @@ def main():
 
     t_fix, y_fix_euler = euler_method(nn_tr_te=nn_tr_te, device=device, t0=0, y0=[2, 1], h=0.1, tol=0.1, diff_eq=diff_eq, num_step=25, fix_step=True)
     y_ref_pred = diff_eq.integrate(t_points=t_pred[0])
-
     ref_error_nn1 = np.abs(y_pred[0] - y_ref_pred[:, 1])
     ref_error_nn2 = np.abs(y_pred[1] - y_ref_pred[:, 2])
 
-    ref_euler1 = np.abs(y_fix_euler[:-1][0] - data_integrate[:, 1])
-    ref_euler2 = np.abs(y_fix_euler[:-1][1] - data_integrate[:, 2])
+    ref_euler1 = np.abs(y_fix_euler[:][0] - data_integrate[:26, 1])
+    ref_euler2 = np.abs(y_fix_euler[:][1] - data_integrate[:26, 2])
 
 
     # ref_euler = np.abs(y_fix_euler[:-1] - data_integrate[:, 1])
