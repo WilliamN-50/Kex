@@ -48,8 +48,8 @@ class TrainAndTest:
     Trains and tests the NeuralNetwork model.
     ____________________________
     """
-    def __init__(self, diff_eq, in_data, batch_size, device, train_ratio=0.85, lr=1e-3):
-        self.model = NeuralNetwork(diff_eq.num_y).to(device)
+    def __init__(self, model, diff_eq, in_data, batch_size, device, train_ratio=0.85, lr=1e-3):
+        self.model = model
         self.diff_eq = diff_eq
         self.train_data, self.test_data = self._split_train_test(in_data, train_ratio)
         self.batch_size = batch_size
@@ -169,14 +169,16 @@ def _local_truncation_error(data, func, num_y):
 
 
 def main():
+    diff_eq = gd.Diff_eq_1(t_0=0, t_end=10, y_0=[1, 2])
     in_data = np.load("outfile_exempel.npy")
     batch_size = 500
     # device = "cuda" if torch.cuda.is_available() else "cpu"
     device = "cpu"
     print(f"Using {device} device")
-    train = TrainAndTest(diff_eq=gd.Diff_eq_1(t_0=0, t_end=10, y_0=[1, 2]), in_data=in_data,
+    model = NeuralNetwork(diff_eq.num_y).to(device)
+    train = TrainAndTest(model=model, diff_eq=diff_eq, in_data=in_data,
                          batch_size=batch_size, device=device, lr=1e-3)
-    for i in range(2):
+    for i in range(10):
         print("____________________")
         print("epoch:{}".format(i + 1))
         print("____________________")
@@ -184,6 +186,7 @@ def main():
         train.nn_test()
 
     train.plot_loss()
+
 
 if __name__ == '__main__':
     main()

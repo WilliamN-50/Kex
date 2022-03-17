@@ -58,8 +58,8 @@ def main():
 
     batch_size = 500
     device = "cpu"
-
-    nn_tr_te = NN_model.TrainAndTest(diff_eq, data_input, batch_size, device, train_ratio=0.85, lr=1e-3)
+    model = NN_model.NeuralNetwork(diff_eq.num_y)
+    nn_tr_te = NN_model.TrainAndTest(model, diff_eq, data_input, batch_size, device, train_ratio=0.85, lr=1e-3)
     for i in range(10):
         print("____________________")
         print("epoch:{}".format(i + 1))

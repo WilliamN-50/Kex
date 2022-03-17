@@ -31,9 +31,10 @@ def main():
     data_input = diff_eq.reshape_data(data_integrate)
 
     batch_size = 500
-    device = "cuda"
-    nn_tr_te = NN_model.TrainAndTest(diff_eq, data_input, batch_size, device, train_ratio=0.85, lr=1e-3)
-    for i in range(50):
+    device = "cpu"
+    model = NN_model.NeuralNetwork(diff_eq.num_y)
+    nn_tr_te = NN_model.TrainAndTest(model, diff_eq, data_input, batch_size, device, train_ratio=0.85, lr=1e-3)
+    for i in range(2):
         print("____________________")
         print("epoch:{}".format(i + 1))
         print("____________________")
