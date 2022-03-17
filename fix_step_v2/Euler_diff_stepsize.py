@@ -59,10 +59,12 @@ def adaptive_euler_h(h, tol, nn_e):
 
 
 def main():
-    t = np.arange(0, 15, 0.13)
+    # t = np.arange(0, 15, 0.13)
     # print(t.shape[0])
-    diff_eq = Diff_eq_1(0, 15, [1, 2])
-    data_integrate = diff_eq.integrate(t_points=t)
+    diff_eq = Diff_eq_1(0, 15, [2, 1])
+    # t_points = diff_eq.create_t(number_t=1000)
+    t_points = np.arange(0, 15, 0.13)
+    data_integrate = diff_eq.integrate(t_points=t_points)
     # data_input = diff_eq.reshape_data(data_integrate)
 
     # batch_size = 500
@@ -71,8 +73,8 @@ def main():
     model.load_state_dict(torch.load("eq_1_model_50.pth"))
     model.eval()
 
-    t_pred, y_pred = euler_method(model=model, t0=0, t_end=15, y0=[1, 2], h=0.5, tol=0.1, diff_eq=diff_eq, device=device)
-    t_fix, y_fix_euler = euler_method(model=model, t0=0, t_end=15, y0=[1, 2], h=0.13, tol=0.1, diff_eq=diff_eq, device=device, fix_step=True)
+    t_pred, y_pred = euler_method(model=model, t0=0, t_end=15, y0=[2, 1], h=0.5, tol=0.1, diff_eq=diff_eq, device=device)
+    t_fix, y_fix_euler = euler_method(model=model, t0=0, t_end=15, y0=[2, 1], h=0.13, tol=0.1, diff_eq=diff_eq, device=device, fix_step=True)
     # print("t", t_fix)
     # print("y", y_pred)
     y_ref_pred = diff_eq.integrate(t_points=t_pred)

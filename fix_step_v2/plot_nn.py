@@ -45,15 +45,15 @@ def r_n_error(model, data, func):
     return r, n
 
 def main():
-    diff_eq = Diff_eq_1(0, 10, [1, 2])
+    diff_eq = Diff_eq_1(0, 25, [2, 1])
     device = "cpu"
     model = NN_model.NeuralNetwork(diff_eq.num_y)
     model.load_state_dict(torch.load("eq_1_model_50.pth"))
     model.eval()
 
-    t2 = np.arange(0, 10, 0.15)
+    t2 = np.arange(0, 25, 0.15)
     y = np.zeros((2, len(t2)))
-    y[:, 0] = [1, 2]
+    y[:, 0] = [2, 1]
     for i in range(len(t2)-1):
         h = t2[i+1] - t2[i]
         # print(y[i, 0])
@@ -62,12 +62,12 @@ def main():
         nn_e = nn_e.detach().numpy()
         y[:, i+1] = y[:, i] + h*diff_eq.func(t2[i], y[:, i]) + h**2 * nn_e
 
-    t = np.arange(0, 10, 0.1)
+    t = np.arange(0, 25, 0.1)
     data_integrate = diff_eq.integrate(t_points=t)
     # print(data_integrate)
     r, n = r_n_error(model, data_integrate, diff_eq.func)
-    # plt.plot(data_integrate[:-1, 0], r[:, 0], label="R1")
-    # plt.plot(data_integrate[:-1, 0], n[:, 0], "--", label="N1")
+    plt.plot(data_integrate[:-1, 0], r[:, 0], label="R1")
+    plt.plot(data_integrate[:-1, 0], n[:, 0], "--", label="N1")
     plt.plot(data_integrate[:-1, 0], r[:, 1], label="R2")
     plt.plot(data_integrate[:-1, 0], n[:, 1], "--", label="N2")
     plt.legend()
