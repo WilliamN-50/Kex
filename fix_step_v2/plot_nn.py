@@ -20,32 +20,36 @@ class Diff_eq_2(gd.DifferentialEquation):
         return 3/2 * y/(t+1) + np.sqrt(t+1)
 
 
+def r_n_error(model, data, func):
+    r = []
+    n = []
+
+    for i in range(data.shape[0]-1):
+        x_first = data[i, 0]
+        x_second = data[i+1, 0]
+        delta_x = x_second - x_first
+        y_first = data[i, 1:]
+        y_second = data[i+1, 1:]
+        r_temp = 1/delta_x**2 * (y_second - y_first - delta_x * func(x_first, y_first))
+        r.append(list(r_temp))
+
+        temp0 = np.array([y_first[j] for j in range(len(y_first))])
+        temp1 = np.array([x_first, x_second, delta_x])
+        temp1 = np.append(temp1, temp0)
+        data_temp = torch.tensor(temp1).float()
+        nn_e = model(data_temp)
+        nn_e = nn_e.detach().numpy()
+        n.append(list(nn_e))
+    r = np.array(r)
+    n = np.array(n)
+    return r, n
+
 def main():
     diff_eq = Diff_eq_1(0, 10, [1, 2])
     device = "cpu"
     model = NN_model.NeuralNetwork(diff_eq.num_y)
     model.load_state_dict(torch.load("eq_1_model_50.pth"))
     model.eval()
-
-    """
-    t = np.arange(0, 10, 0.1)
-    data_integrate = diff_eq.integrate(t_points=t)
-
-    # plt.plot(data_integrate[:, 0], data_integrate[:, 1])
-    # plt.show()
-    data_input = diff_eq.reshape_data(data_integrate)
-    
-    batch_size = 500
-    device = "cpu"
-    model = NN_model.NeuralNetwork(diff_eq.num_y)
-    nn_tr_te = NN_model.TrainAndTest(model, diff_eq, data_input, batch_size, device, train_ratio=0.85, lr=1e-3)
-    for i in range(2):
-        print("____________________")
-        print("epoch:{}".format(i + 1))
-        print("____________________")
-        nn_tr_te.nn_train()
-        nn_tr_te.nn_test()
-    """
 
     t2 = np.arange(0, 10, 0.15)
     y = np.zeros((2, len(t2)))
@@ -60,6 +64,14 @@ def main():
 
     t = np.arange(0, 10, 0.1)
     data_integrate = diff_eq.integrate(t_points=t)
+    # print(data_integrate)
+    r, n = r_n_error(model, data_integrate, diff_eq.func)
+    # plt.plot(data_integrate[:-1, 0], r[:, 0], label="R1")
+    # plt.plot(data_integrate[:-1, 0], n[:, 0], "--", label="N1")
+    plt.plot(data_integrate[:-1, 0], r[:, 1], label="R2")
+    plt.plot(data_integrate[:-1, 0], n[:, 1], "--", label="N2")
+    plt.legend()
+    plt.show()
 
     plt.plot(t2, y[0, :], label='prediction')
     plt.plot(t2, y[1, :], label='prediction')

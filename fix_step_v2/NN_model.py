@@ -188,7 +188,6 @@ def main():
         train.nn_test()
 
     train.save_model("eq_1_model_50.pth")
-
     train.plot_loss()
 
 
