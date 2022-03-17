@@ -21,15 +21,20 @@ class Diff_eq_2(gd.DifferentialEquation):
 
 
 def main():
-    t = np.arange(0, 10, 0.1)
     diff_eq = Diff_eq_1(0, 10, [1, 2])
+    device = "cpu"
+    model = NN_model.NeuralNetwork(diff_eq.num_y)
+    model.load_state_dict(torch.load("eq_1_model_50.pth"))
+    model.eval()
+
+    """
+    t = np.arange(0, 10, 0.1)
     data_integrate = diff_eq.integrate(t_points=t)
 
     # plt.plot(data_integrate[:, 0], data_integrate[:, 1])
     # plt.show()
-
     data_input = diff_eq.reshape_data(data_integrate)
-
+    
     batch_size = 500
     device = "cpu"
     model = NN_model.NeuralNetwork(diff_eq.num_y)
@@ -40,6 +45,7 @@ def main():
         print("____________________")
         nn_tr_te.nn_train()
         nn_tr_te.nn_test()
+    """
 
     t2 = np.arange(0, 10, 0.15)
     y = np.zeros((2, len(t2)))
@@ -48,17 +54,12 @@ def main():
         h = t2[i+1] - t2[i]
         # print(y[i, 0])
         data = torch.tensor([t2[i], t2[i+1], h, y[0, i], y[1, i]]).to(device).float()
-        nn_e = nn_tr_te.model(data).cpu()
+        nn_e = model(data).cpu()
         nn_e = nn_e.detach().numpy()
         y[:, i+1] = y[:, i] + h*diff_eq.func(t2[i], y[:, i]) + h**2 * nn_e
 
     t = np.arange(0, 10, 0.1)
-    diff_eq = Diff_eq_1(0, 10, [1, 2])
     data_integrate = diff_eq.integrate(t_points=t)
-
-
-    # plt.plot(data_integrate[:, 0], data_integrate[:, 1])
-    # plt.show()
 
     plt.plot(t2, y[0, :], label='prediction')
     plt.plot(t2, y[1, :], label='prediction')

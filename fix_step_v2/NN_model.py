@@ -81,7 +81,6 @@ class TrainAndTest:
         batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y))
 
         for index, data in enumerate(torch_data):
-
             # Compute prediction- and truncation- error
             batch_pred[index % self.batch_size, :] = self.model(data[: 3 + self.diff_eq.num_y])
             batch_truncation_error[index % self.batch_size, :] = _local_truncation_error(data, self.diff_eq.func,
@@ -148,6 +147,9 @@ class TrainAndTest:
             test_loss, current = test_loss.item(), self.test_data.shape[0]
             print(f"test loss:{test_loss:>7f} [{current:>5d}/{self.test_data.shape[0]:>5d}]")
 
+    def save_model(self, filename):
+        torch.save(self.model.state_dict(), filename)
+
     def plot_loss(self, semilogy=False):
         epoch = np.arange(1, len(self.test_loss)+1)
         if semilogy:
@@ -178,12 +180,14 @@ def main():
     model = NeuralNetwork(diff_eq.num_y).to(device)
     train = TrainAndTest(model=model, diff_eq=diff_eq, in_data=in_data,
                          batch_size=batch_size, device=device, lr=1e-3)
-    for i in range(10):
+    for i in range(50):
         print("____________________")
         print("epoch:{}".format(i + 1))
         print("____________________")
         train.nn_train()
         train.nn_test()
+
+    train.save_model("eq_1_model_50.pth")
 
     train.plot_loss()
 
