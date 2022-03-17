@@ -44,6 +44,7 @@ def r_n_error(model, data, func):
     n = np.array(n)
     return r, n
 
+
 def main():
     diff_eq = Diff_eq_1(0, 25, [2, 1])
     device = "cpu"

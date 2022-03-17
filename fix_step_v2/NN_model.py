@@ -174,6 +174,7 @@ def main():
     diff_eq = gd.Diff_eq_1(t_0=0, t_end=15, y_0=[2, 1])
     in_data = np.load("outfile_exempel.npy")
     batch_size = 500
+
     # device = "cuda" if torch.cuda.is_available() else "cpu"
     device = "cpu"
     print(f"Using {device} device")

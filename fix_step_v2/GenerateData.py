@@ -92,6 +92,7 @@ def main():
     t_points = d_e0.create_t(number_t=1000)
     data = d_e0.integrate(t_points=t_points)
     reshaped_data = d_e0.reshape_data(data, out_file='outfile_exempel.npy', save_to_file=True)
+
     print(reshaped_data)
 
 
