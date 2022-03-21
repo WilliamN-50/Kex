@@ -34,7 +34,7 @@ def r_n_error(model, data, func):
         r.append(list(r_temp))
 
         temp0 = np.array([y_first[j] for j in range(len(y_first))])
-        temp1 = np.array([x_first, x_second, delta_x])
+        temp1 = np.array([x_first, x_second])
         temp1 = np.append(temp1, temp0)
         data_temp = torch.tensor(temp1).float()
         nn_e = model(data_temp)
@@ -49,7 +49,7 @@ def main():
     diff_eq = Diff_eq_1(0, 25, [2, 1])
     device = "cpu"
     model = NN_model.NeuralNetwork(diff_eq.num_y)
-    model.load_state_dict(torch.load("eq_1_model_50.pth"))
+    model.load_state_dict(torch.load("eq_1_model_50_adam_batch.pth"))
     model.eval()
 
     t2 = np.arange(0, 25, 0.15)
@@ -58,7 +58,7 @@ def main():
     for i in range(len(t2)-1):
         h = t2[i+1] - t2[i]
         # print(y[i, 0])
-        data = torch.tensor([t2[i], t2[i+1], h, y[0, i], y[1, i]]).to(device).float()
+        data = torch.tensor([t2[i], t2[i+1], y[0, i], y[1, i]]).to(device).float()
         nn_e = model(data).cpu()
         nn_e = nn_e.detach().numpy()
         y[:, i+1] = y[:, i] + h*diff_eq.func(t2[i], y[:, i]) + h**2 * nn_e
@@ -67,17 +67,17 @@ def main():
     data_integrate = diff_eq.integrate(t_points=t)
     # print(data_integrate)
     r, n = r_n_error(model, data_integrate, diff_eq.func)
-    plt.plot(data_integrate[:-1, 0], r[:, 0], label="R1")
-    plt.plot(data_integrate[:-1, 0], n[:, 0], "--", label="N1")
-    plt.plot(data_integrate[:-1, 0], r[:, 1], label="R2")
-    plt.plot(data_integrate[:-1, 0], n[:, 1], "--", label="N2")
+    plt.plot(data_integrate[:-1, 0], r[:, 0], label="R of y1")
+    plt.plot(data_integrate[:-1, 0], n[:, 0], "--", label="N of y1")
+    plt.plot(data_integrate[:-1, 0], r[:, 1], label="R of y2")
+    plt.plot(data_integrate[:-1, 0], n[:, 1], "--", label="N of y2")
     plt.legend()
     plt.show()
 
-    plt.plot(t2, y[0, :], label='prediction')
-    plt.plot(t2, y[1, :], label='prediction')
-    plt.plot(data_integrate[:, 0], data_integrate[:, 1], label='target')
-    plt.plot(data_integrate[:, 0], data_integrate[:, 2], label='target')
+    plt.plot(t2, y[0, :], label='DEM, prediction y1')
+    plt.plot(t2, y[1, :], label='DEM, prediction y2')
+    plt.plot(data_integrate[:, 0], data_integrate[:, 1], label='Exact y1')
+    plt.plot(data_integrate[:, 0], data_integrate[:, 2], label='Exact y2')
     plt.legend()
     plt.show()
 
