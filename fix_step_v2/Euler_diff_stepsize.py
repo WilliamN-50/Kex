@@ -89,7 +89,8 @@ def main():
 
     device = "cpu"
     model = NN_model.NeuralNetwork(diff_eq.num_y)
-    model.load_state_dict(torch.load("eq_1_model_50_adam_batch.pth"))
+    # model.load_state_dict(torch.load("../trained_model/eq_1_model_50_adam_batch.pth"))
+    model.load_state_dict(torch.load("../trained_model/eq_1_model_50_adam_batch.pth"))
     model.eval()
 
     t_dem_adap, y_dem_adap, i = adaptive_euler(model=model, t0=t0, t_end=t_end, y0=y0, h=0.1, tol=0.0001, diff_eq=diff_eq,

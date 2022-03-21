@@ -18,7 +18,8 @@ class DifferentialEquation:
     def func(self, x, y):
         pass
 
-    def integrate(self, method="RK45", rtol=10**(-6), t_points=None, out_file=None, save_to_file=False):
+    def integrate(self, method="RK45", rtol=10 ** (-6), t_points=None, noise_level=0.0, out_file=None,
+                  save_to_file=False):
         """
         ____________________________
         Integrates the differential equation.
@@ -26,9 +27,11 @@ class DifferentialEquation:
         """
         solution = solve_ivp(self.func, [self.t_0, self.t_end], self.y_0, method=method, t_eval=t_points, rtol=rtol)
         rows = solution.t.shape[0]
-        out_data = np.zeros((rows, 1+self.num_y))
+        noise = np.random.uniform(-1 * noise_level, noise_level, solution.y.T.shape)
+        out_data = np.zeros((rows, 1 + self.num_y))
         out_data[:, 0] = solution.t.T
-        out_data[:, 1:] = solution.y.T
+        out_data[:, 1:] = solution.y.T + noise
+
         if save_to_file:
             np.save(out_file, out_data)
         else:
@@ -89,10 +92,11 @@ class Diff_eq_2(DifferentialEquation):
 
 
 def main():
-    d_e0 = Diff_eq_1(t_0=0, t_end=15, y_0=[2, 1])
-    t_points = create_random_t(0, 15, number_t=100)
-    data = d_e0.integrate(t_points=t_points)
-    reshaped_data = d_e0.reshape_data(data, out_file='outfile_exempel.npy', save_to_file=True)
+    d_e0 = Diff_eq_1(t_0=0, t_end=5, y_0=[2, 1])
+    t_points = create_random_t(0, 5, number_t=100)
+    data = d_e0.integrate(t_points=t_points, noise_level=0.01)
+    reshaped_data = d_e0.reshape_data(data, out_file='outfile_exempel_noise.npy', save_to_file=False)
+    # print(reshaped_data)
 
 
 if __name__ == '__main__':
