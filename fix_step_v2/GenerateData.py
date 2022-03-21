@@ -18,20 +18,7 @@ class DifferentialEquation:
     def func(self, x, y):
         pass
 
-    def create_t(self, number_t):
-        """
-        ____________________________
-        Create the set of the t points.
-        ____________________________
-        """
-        t = []
-        for i in range(number_t):
-            t.append(15*np.random.random())
-
-        t.sort()
-        return t
-
-    def integrate(self, method="RK45", rtol=10**(-6), t_points=None, noise_level=0.0, out_file=None, save_to_file=False):
+    def integrate(self, method="RK45", rtol=10**(-6), t_points=None, out_file=None, save_to_file=False):
         """
         ____________________________
         Integrates the differential equation.
@@ -39,11 +26,9 @@ class DifferentialEquation:
         """
         solution = solve_ivp(self.func, [self.t_0, self.t_end], self.y_0, method=method, t_eval=t_points, rtol=rtol)
         rows = solution.t.shape[0]
-        noise = np.random.uniform(-1*noise_level, noise_level, solution.y.T.shape)
         out_data = np.zeros((rows, 1+self.num_y))
         out_data[:, 0] = solution.t.T
-        out_data[:, 1:] = solution.y.T + noise
-
+        out_data[:, 1:] = solution.y.T
         if save_to_file:
             np.save(out_file, out_data)
         else:
@@ -74,6 +59,20 @@ class DifferentialEquation:
             return out_data
 
 
+def create_random_t(t_start, t_end, number_t):
+    """
+    ____________________________
+    Create a set of random points.
+    ____________________________
+    """
+    t = []
+    for i in range(number_t):
+        t.append(np.random.uniform(t_start, t_end))
+
+    t.sort()
+    return t
+
+
 class Diff_eq_0(DifferentialEquation):
     def func(self, t, y):
         return -y
@@ -91,11 +90,9 @@ class Diff_eq_2(DifferentialEquation):
 
 def main():
     d_e0 = Diff_eq_1(t_0=0, t_end=15, y_0=[2, 1])
-    t_points = d_e0.create_t(number_t=1000)
-    data = d_e0.integrate(t_points=t_points, noise_level=0.1)
-    reshaped_data = d_e0.reshape_data(data, out_file='outfile_exempel_noise.npy', save_to_file=True)
-
-    print(reshaped_data)
+    t_points = create_random_t(0, 15, number_t=100)
+    data = d_e0.integrate(t_points=t_points)
+    reshaped_data = d_e0.reshape_data(data, out_file='outfile_exempel.npy', save_to_file=True)
 
 
 if __name__ == '__main__':
