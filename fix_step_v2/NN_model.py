@@ -178,9 +178,9 @@ def _local_truncation_error(data, func, num_y):
 
 
 def main():
-    diff_eq = gd.Diff_eq_1(t_0=0, t_end=15, y_0=[2, 1])
-    in_data = np.load("outfile_exempel.npy")
-    batch_size = 424575
+    diff_eq = gd.Diff_eq_1(t_0=0, t_end=10, y_0=[1.5, 3])
+    in_data = np.load("eq1_outfile_test_15_3.npy")
+    batch_size = 500
 
     # device = "cuda" if torch.cuda.is_available() else "cpu"
     device = "cpu"
@@ -195,7 +195,7 @@ def main():
         train.nn_train()
         train.nn_test()
 
-    train.save_model("eq_1_model_50_Adam_full_batch.pth")
+    train.save_model("eq_1_model_Adam_no_noise_15_3.pth")
     train.plot_loss()
 
 

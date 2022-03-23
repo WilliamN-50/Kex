@@ -92,10 +92,10 @@ class Diff_eq_2(DifferentialEquation):
 
 
 def main():
-    d_e0 = Diff_eq_1(t_0=0, t_end=5, y_0=[2, 1])
-    t_points = create_random_t(0, 5, number_t=100)
-    data = d_e0.integrate(t_points=t_points, noise_level=0.01)
-    reshaped_data = d_e0.reshape_data(data, out_file='outfile_exempel_noise.npy', save_to_file=False)
+    d_e0 = Diff_eq_1(t_0=0, t_end=10, y_0=[1.5, 3])
+    t_points = create_random_t(0, 10, number_t=100)
+    data = d_e0.integrate(t_points=t_points, noise_level=0)
+    reshaped_data = d_e0.reshape_data(data, out_file='eq1_outfile_test_15_3.npy', save_to_file=True)
     # print(reshaped_data)
 
 
