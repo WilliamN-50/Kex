@@ -51,7 +51,7 @@ class TrainAndTest:
     def __init__(self, model, diff_eq, in_data, batch_size, device, train_ratio=0.85, lr=1e-3):
         self.model = model
         self.diff_eq = diff_eq
-        self.train_data, self.test_data = self._split_train_test(in_data, train_ratio, device)
+        self.train_data, self.test_data = self._split_train_test(in_data, train_ratio)
         self.batch_size = batch_size
         self.loss_fn = nn.L1Loss(reduction="mean")
         self.test_loss = None
@@ -59,11 +59,11 @@ class TrainAndTest:
         self.device = device
 
     @ staticmethod
-    def _split_train_test(in_data, ratio, device):
+    def _split_train_test(in_data, ratio):
         np.random.shuffle(in_data)
         num_train_data = int(in_data.shape[0]*ratio)
-        train_data = torch.from_numpy(in_data[:num_train_data]).float().to(device)
-        test_data = torch.from_numpy(in_data[num_train_data:]).float().to(device)
+        train_data = in_data[:num_train_data]
+        test_data = in_data[num_train_data:]
         return train_data, test_data
 
     def nn_train(self, verbose=False):
@@ -73,9 +73,9 @@ class TrainAndTest:
         ____________________________
         """
         self.model.train()
+        np.random.shuffle(self.train_data)
 
-        idx = torch.randperm(self.train_data.size(dim=0))
-        torch_data = self.train_data[idx]
+        torch_data = torch.from_numpy(self.train_data).float().to(self.device)
 
         batch_truncation_error = torch.empty((self.batch_size, self.diff_eq.num_y))
         batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y))
@@ -122,16 +122,15 @@ class TrainAndTest:
     def nn_test(self, verbose=False):
         """
         ____________________________
-        Testing function to test the training of the NeuralNetwork.
+        Testing function to test the training of  the NeuralNetwork.
         ____________________________
         """
         self.model.eval()
-        idx = torch.randperm(self.test_data.size(dim=0))
-        torch_data = self.train_data[idx]
+        torch_data = torch.from_numpy(self.test_data).float().to(self.device)
         with torch.no_grad():
 
-            batch_truncation_error = torch.empty((self.test_data.size(dim=0), self.diff_eq.num_y))
-            batch_pred = torch.empty((self.test_data.size(dim=0), self.diff_eq.num_y))
+            batch_truncation_error = torch.empty((self.test_data.shape[0], self.diff_eq.num_y))
+            batch_pred = torch.empty((self.test_data.shape[0], self.diff_eq.num_y))
 
             for index, data in enumerate(torch_data):
                 # Compute prediction- and truncation- error
@@ -179,8 +178,8 @@ def _local_truncation_error(data, func, num_y):
 
 
 def main():
-    diff_eq = gd.Diff_eq_2(t_0=0, t_end=10, y_0=[2, 4])
-    in_data = np.load("outfile_exempel.npy")
+    diff_eq = gd.Diff_eq_1(t_0=0, t_end=10, y_0=[1.5, 3])
+    in_data = np.load("eq1_outfile_test_15_3.npy")
     batch_size = 500
 
     # device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -196,7 +195,7 @@ def main():
         train.nn_train()
         train.nn_test()
 
-    train.save_model("eq_1_model_50_no_noise.pth")
+    train.save_model("eq_1_model_Adam_no_noise_15_3.pth")
     train.plot_loss()
 
 
