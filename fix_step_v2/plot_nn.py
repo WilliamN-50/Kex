@@ -19,6 +19,10 @@ class Diff_eq_2(gd.DifferentialEquation):
     def func(self, t, y):
         return 3/2 * y/(t+1) + np.sqrt(t+1)
 
+class Diff_eq_Van_der(gd.DifferentialEquation):
+    def func(self, t, y):
+        return np.array([y[1], (1-y[0]**2)*y[1]-y[0]])
+
 
 def r_n_error(model, data, func):
     r = []
@@ -46,20 +50,21 @@ def r_n_error(model, data, func):
 
 
 def main():
-    diff_eq = Diff_eq_2(0, 10, [1])
+    diff_eq = Diff_eq_Van_der(0, 10, [1, 2])
     device = "cpu"
     model = NN_model.NeuralNetwork(diff_eq.num_y)
-    model.load_state_dict(torch.load("eq_2_model_Adam_with_noise_01.pth"))
+    # model.load_state_dict(torch.load("eq_van_der_model_Adam_no_noise_1_2_150p.pth"))
+    model.load_state_dict(torch.load("eq_van_der_model_Adam_no_noise_1_2_150p.pth"))
     model.eval()
 
     t2 = np.arange(0, 10, 0.1)
     y = np.zeros((2, len(t2)))
-    y[:, 0] = [1]
+    y[:, 0] = [1, 2]
     for i in range(len(t2)-1):
         h = t2[i+1] - t2[i]
         # print(y[i, 0])
-        # data = torch.tensor([t2[i], t2[i+1], y[0, i], y[1, i]]).to(device).float()
-        data = torch.tensor([t2[i], t2[i + 1], y[0, i]]).to(device).float()
+        data = torch.tensor([t2[i], t2[i+1], y[0, i], y[1, i]]).to(device).float()
+        # data = torch.tensor([t2[i], t2[i + 1], y[0, i]]).to(device).float()
         nn_e = model(data).cpu()
         nn_e = nn_e.detach().numpy()
         y[:, i+1] = y[:, i] + h*diff_eq.func(t2[i], y[:, i]) + h**2 * nn_e
@@ -70,15 +75,15 @@ def main():
     r, n = r_n_error(model, data_integrate, diff_eq.func)
     plt.plot(data_integrate[:-1, 0], r[:, 0], label="R of y1")
     plt.plot(data_integrate[:-1, 0], n[:, 0], "--", label="N of y1")
-    # plt.plot(data_integrate[:-1, 0], r[:, 1], label="R of y2")
-    # plt.plot(data_integrate[:-1, 0], n[:, 1], "--", label="N of y2")
+    plt.plot(data_integrate[:-1, 0], r[:, 1], label="R of y2")
+    plt.plot(data_integrate[:-1, 0], n[:, 1], "--", label="N of y2")
     plt.legend()
     plt.show()
 
     plt.plot(t2, y[0, :], "--", label='DEM, prediction y1')
-    # plt.plot(t2, y[1, :], "--", label='DEM, prediction y2')
+    plt.plot(t2, y[1, :], "--", label='DEM, prediction y2')
     plt.plot(data_integrate[:, 0], data_integrate[:, 1], label='Exact y1')
-    # plt.plot(data_integrate[:, 0], data_integrate[:, 2], label='Exact y2')
+    plt.plot(data_integrate[:, 0], data_integrate[:, 2], label='Exact y2')
     plt.legend()
     plt.show()
 

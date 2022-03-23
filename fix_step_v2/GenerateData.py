@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.integrate import solve_ivp
-
+import matplotlib.pyplot as plt
 
 class DifferentialEquation:
     """
@@ -91,11 +91,19 @@ class Diff_eq_2(DifferentialEquation):
         return 3/2 * y/(t+1) + np.sqrt(t+1)
 
 
+class Diff_eq_Van_der(DifferentialEquation):
+    def func(self, t, y):
+        return np.array([y[1], (1-y[0]**2)*y[1]-y[0]])
+
+
 def main():
-    d_e0 = Diff_eq_1(t_0=0, t_end=10, y_0=[1.5, 3])
-    t_points = create_random_t(0, 10, number_t=100)
+    d_e0 = Diff_eq_Van_der(t_0=0, t_end=25, y_0=[1, 2])
+    t_points = create_random_t(0, 25, number_t=150)
     data = d_e0.integrate(t_points=t_points, noise_level=0)
-    reshaped_data = d_e0.reshape_data(data, out_file='eq1_outfile_test_15_3.npy', save_to_file=True)
+    plt.plot(data[:, 0], data[:, 1], label='Exact y1')
+    plt.plot(data[:, 0], data[:, 2], label='Exact y2')
+    plt.show()
+    reshaped_data = d_e0.reshape_data(data, out_file='eq_van_der_outfile_1_2_150p.npy', save_to_file=False)
     # print(reshaped_data)
 
 
