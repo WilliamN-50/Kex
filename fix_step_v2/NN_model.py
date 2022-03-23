@@ -51,7 +51,7 @@ class TrainAndTest:
     def __init__(self, model, diff_eq, in_data, batch_size, device, train_ratio=0.85, lr=1e-3):
         self.model = model
         self.diff_eq = diff_eq
-        self.train_data, self.test_data = self._split_train_test(in_data, train_ratio)
+        self.train_data, self.test_data = self._split_train_test(in_data, train_ratio, device)
         self.batch_size = batch_size
         self.loss_fn = nn.L1Loss(reduction="mean")
         self.test_loss = None
@@ -59,11 +59,11 @@ class TrainAndTest:
         self.device = device
 
     @ staticmethod
-    def _split_train_test(in_data, ratio):
+    def _split_train_test(in_data, ratio, device):
         np.random.shuffle(in_data)
         num_train_data = int(in_data.shape[0]*ratio)
-        train_data = in_data[:num_train_data]
-        test_data = in_data[num_train_data:]
+        train_data = torch.from_numpy(in_data[:num_train_data]).float().to(device)
+        test_data = torch.from_numpy(in_data[num_train_data:]).float().to(device)
         return train_data, test_data
 
     def nn_train(self, verbose=False):
@@ -73,14 +73,13 @@ class TrainAndTest:
         ____________________________
         """
         self.model.train()
-        np.random.shuffle(self.train_data)
-
-        torch_data = torch.from_numpy(self.train_data).float().to(self.device)
+        idx = torch.randperm(self.train_data.size(0))
+        train_data = self.train_data[idx]
 
         batch_truncation_error = torch.empty((self.batch_size, self.diff_eq.num_y))
         batch_pred = torch.empty((self.batch_size, self.diff_eq.num_y))
 
-        for index, data in enumerate(torch_data):
+        for index, data in enumerate(train_data):
             # Compute prediction- and truncation- error
             data_temp = np.append(data[:2], data[3:3+self.diff_eq.num_y])
             data_temp = torch.from_numpy(data_temp).float().to(self.device)
@@ -126,13 +125,12 @@ class TrainAndTest:
         ____________________________
         """
         self.model.eval()
-        torch_data = torch.from_numpy(self.test_data).float().to(self.device)
         with torch.no_grad():
 
             batch_truncation_error = torch.empty((self.test_data.shape[0], self.diff_eq.num_y))
             batch_pred = torch.empty((self.test_data.shape[0], self.diff_eq.num_y))
 
-            for index, data in enumerate(torch_data):
+            for index, data in enumerate(self.test_data):
                 # Compute prediction- and truncation- error
                 # batch_pred[index, :] = self.model(data[: 3 + self.diff_eq.num_y])
                 data_temp = np.append(data[:2], data[3:3+self.diff_eq.num_y])
