@@ -3,7 +3,25 @@ import numpy as np
 import GenerateData as gd
 import NN_model
 import torch
-import GenerateData as gd
+
+class Diff_eq_0(gd.DifferentialEquation):
+    def func(self, t, y):
+        return -y
+
+
+class Diff_eq_1(gd.DifferentialEquation):
+    def func(self, x, y):
+        return np.array([y[0] - y[0]*y[1], -y[1] + y[0]*y[1]])
+
+
+class Diff_eq_2(gd.DifferentialEquation):
+    def func(self, t, y):
+        return 3/2 * y/(t+1) + np.sqrt(t+1)
+
+
+class Diff_eq_Van_der(gd.DifferentialEquation):
+    def func(self, t, y):
+        return np.array([y[1], (1-y[0]**2)*y[1]-y[0]])
 
 
 def fix_euler_method(model, t0, t_end, y0, h, diff_eq, device, deep=True):
@@ -33,14 +51,11 @@ def fix_euler_method(model, t0, t_end, y0, h, diff_eq, device, deep=True):
 def adaptive_euler(model, t0, t_end, y0, h, tol, diff_eq, device):
     t = [t0]
     y = [y0]
-    h_list= []
-
     i = 0
 
     while t[-1] < t_end - h:
-        norm, nn_e = comp_norm(model, t[-1], y[-1], h, diff_eq, device)
+        norm, nn_e = comp_norm(model, t0, y0, h, diff_eq, device)
         if norm < tol:
-            i += 1
             h = (tol / norm)**(1/2) * h * 0.9
             norm, nn_e = comp_norm(model, t[-1], y[-1], h, diff_eq, device)
 
@@ -53,11 +68,12 @@ def adaptive_euler(model, t0, t_end, y0, h, tol, diff_eq, device):
         y_temp = y_temp + h*diff_eq.func(t[-1], y_temp) + h**2 * nn_e
         y.append(list(y_temp))
         t.append(t[-1] + h)
-        h_list.append(h)
+        # print(h)
 
     t = np.array(t)
     y = np.array(y)
-    return t, y, i, h_list
+    return t, y, i
+
 
 def comp_norm(model, t0, y0, h, diff_eq, device):
     temp0 = np.array([y0[j] for j in range(diff_eq.num_y)])
@@ -75,28 +91,25 @@ def main():
     y0 = [1, 2]
     t0 = 0
     t_end = 25
-    diff_eq = gd.VanDerPol(t0, t_end, y0)
+    diff_eq = Diff_eq_Van_der(t0, t_end, y0)
 
     device = "cpu"
     model = NN_model.NeuralNetwork(diff_eq.num_y)
     # model.load_state_dict(torch.load("../trained_model/eq_van_der_model_Adam_1_2_1000p_noise01.pth"))
-    model.load_state_dict(torch.load("eq_van_der_model_Adam_no_noise_1_2_1000p_100ep_lr5_10_4.pth"))
+    model.load_state_dict(torch.load("implicEuler_eq_van_der_model_Adam_no_noise_1_2_100p_100ep_lr5_10_4.pth"))
     model.eval()
 
-    t_dem_adap, y_dem_adap, i, h_list = adaptive_euler(model=model, t0=t0, t_end=t_end, y0=y0, h=0.1, tol=0.0001, diff_eq=diff_eq,
+    t_dem_adap, y_dem_adap, i = adaptive_euler(model=model, t0=t0, t_end=t_end, y0=y0, h=0.1, tol=0.001, diff_eq=diff_eq,
                                             device=device)
     # print(y_dem_adap)
-    h = np.min(h_list)
-    t_dem_fix, y_dem_fix = fix_euler_method(model=model, t0=t0, t_end=t_end, y0=y0, h=h, diff_eq=diff_eq,
+    t_dem_fix, y_dem_fix = fix_euler_method(model=model, t0=t0, t_end=t_end, y0=y0, h=(t_end-t0)/(len(t_dem_adap)+i), diff_eq=diff_eq,
                                             device=device)
     # print(y_dem_fix)
-    t_euler_fix, y_euler_fix = fix_euler_method(model=model, t0=t0, t_end=t_end, y0=y0, h=h, diff_eq=diff_eq,
+    t_euler_fix, y_euler_fix = fix_euler_method(model=model, t0=t0, t_end=t_end, y0=y0, h=(t_end-t0)/(len(t_dem_adap)+i), diff_eq=diff_eq,
                                                 device=device, deep=False)
     print("t DEM adap", len(t_dem_adap))
     print("t DEM fix", len(t_dem_fix))
     print("t Euler fix", len(t_euler_fix))
-    print(h)
-    print(i)
 
     data_integrate = diff_eq.integrate(t_points=t_dem_fix)
     y_rel_dem_adap = diff_eq.integrate(t_points=t_dem_adap)

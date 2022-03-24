@@ -161,7 +161,7 @@ class TrainAndTest:
             plt.semilogy(epoch, self.test_loss)
         else:
             plt.plot(epoch, self.test_loss)
-        plt.title("Test Loss")
+        plt.title("Test Loss Van der Pol")
         plt.ylabel("Loss")
         plt.xlabel("Epoch")
         plt.show()
@@ -176,8 +176,8 @@ def _local_truncation_error(data, func, num_y):
 
 
 def main():
-    diff_eq = gd.Diff_eq_1(t_0=0, t_end=10, y_0=[1, 2])
-    in_data = np.load("eq_van_der_outfile_1_2_150p.npy")
+    diff_eq = gd.VanDerPol(t_0=0, t_end=10, y_0=[1, 2])
+    in_data = np.load("eq_van_der_outfile_1_2_250p.npy")
     batch_size = 500
 
     # device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -185,15 +185,15 @@ def main():
     print(f"Using {device} device")
     model = NeuralNetwork(diff_eq.num_y).to(device)
     train = TrainAndTest(model=model, diff_eq=diff_eq, in_data=in_data,
-                         batch_size=batch_size, device=device, lr=1e-3)
-    for i in range(50):
+                         batch_size=batch_size, device=device, lr=5e-4)
+    for i in range(75):
         print("____________________")
         print("epoch:{}".format(i + 1))
         print("____________________")
         train.nn_train()
         train.nn_test()
 
-    train.save_model("eq_van_der_model_Adam_no_noise_1_2_150p.pth")
+    train.save_model("eq_van_der_model_Adam_no_noise_1_2_1000p_100ep_lr5_10_4.pth")
     train.plot_loss()
 
 

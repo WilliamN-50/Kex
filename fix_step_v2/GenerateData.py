@@ -76,34 +76,42 @@ def create_random_t(t_start, t_end, number_t):
     return t
 
 
-class Diff_eq_0(DifferentialEquation):
+class _TestODE1(DifferentialEquation):
     def func(self, t, y):
         return -y
 
 
-class Diff_eq_1(DifferentialEquation):
-    def func(self, x, y):
-        return np.array([y[0] - y[0]*y[1], -y[1] + y[0]*y[1]])
-
-
-class Diff_eq_2(DifferentialEquation):
+class _TestODE2(DifferentialEquation):
     def func(self, t, y):
         return 3/2 * y/(t+1) + np.sqrt(t+1)
 
 
-class Diff_eq_Van_der(DifferentialEquation):
+class LodkaVolterra(DifferentialEquation):
+    def func(self, x, y):
+        return np.array([y[0] - y[0]*y[1], -y[1] + y[0]*y[1]])
+
+
+class VanDerPol(DifferentialEquation):
     def func(self, t, y):
         return np.array([y[1], (1-y[0]**2)*y[1]-y[0]])
 
 
+class Kepler(DifferentialEquation):
+    def func(self, t, y):
+        return np.array([y[2], y[3], -y[0]/(y[0]**2 + y[1]**2)**(3/2), -y[1]/(y[0]**2 + y[1]**2)**(3/2)])
+
+
 def main():
-    d_e0 = Diff_eq_Van_der(t_0=0, t_end=25, y_0=[1, 2])
-    t_points = create_random_t(0, 25, number_t=150)
+    d_e0 = Kepler(t_0=0, t_end=10, y_0=[0.5, 0, 0, np.sqrt(3)])
+    t_points = create_random_t(0, 10, number_t=1000)
     data = d_e0.integrate(t_points=t_points, noise_level=0)
-    plt.plot(data[:, 0], data[:, 1], label='Exact y1')
-    plt.plot(data[:, 0], data[:, 2], label='Exact y2')
+    # plt.plot(data[:, 0], data[:, 1], label='Exact q1')
+    plt.plot(data[:, 1], data[:, 2], label='Exact q2')
     plt.show()
-    reshaped_data = d_e0.reshape_data(data, out_file='eq_van_der_outfile_1_2_150p.npy', save_to_file=False)
+    plt.plot(data[:, 3], data[:, 4], label='Exact p1')
+    # plt.plot(data[:, 0], data[:, 4], label='Exact p2')
+    plt.show()
+    reshaped_data = d_e0.reshape_data(data, out_file='Kepler_outfile_0_10start_100p.npy', save_to_file=True)
     # print(reshaped_data)
 
 
