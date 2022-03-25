@@ -5,25 +5,6 @@ import NN_model
 import torch
 
 
-class Diff_eq_0(gd.DifferentialEquation):
-    def func(self, t, y):
-        return -y
-
-
-class Diff_eq_1(gd.DifferentialEquation):
-    def func(self, x, y):
-        return np.array([y[0] - y[0]*y[1], -y[1] + y[0]*y[1]])
-
-
-class Diff_eq_2(gd.DifferentialEquation):
-    def func(self, t, y):
-        return 3/2 * y/(t+1) + np.sqrt(t+1)
-
-class Diff_eq_Van_der(gd.DifferentialEquation):
-    def func(self, t, y):
-        return np.array([y[1], (1-y[0]**2)*y[1]-y[0]])
-
-
 def r_n_error(model, data, func):
     r = []
     n = []
@@ -49,26 +30,55 @@ def r_n_error(model, data, func):
     return r, n
 
 
+def plot_r_and_n(num_y, t, r, n, title):
+    for i in range(num_y):
+        plt.plot(t[:-1, 0], r[:, i], label="R of y"+str(i+1))
+        plt.plot(t[:-1, 0], n[:, i], "--", label="N of y" + str(i + 1))
+
+    plt.title(title)
+    plt.legend()
+    plt.show()
+
+
+def plot_r_and_n_Kepler(t, r, n, title_p, title_q):
+    plt.subplot(1, 2, 1)
+    for i in range(2):
+        plt.plot(t[:-1, 0], r[:, i], label="R of p" + str(i + 1))
+        plt.plot(t[:-1, 0], n[:, i], "--", label="N of p" + str(i + 1))
+    plt.title(title_p)
+    plt.xlabel("t values")
+    plt.ylabel("Error")
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    for i in range(2, 4):
+        plt.plot(t[:-1, 0], r[:, i], label="R of q" + str(i-1))
+        plt.plot(t[:-1, 0], n[:, i], "--", label="N of q" + str(i-1))
+
+    plt.title(title_q)
+    plt.xlabel("t values")
+    plt.ylabel("Error")
+
+    plt.legend()
+    plt.show()
+
+
 def main():
-    diff_eq = Diff_eq_Van_der(0, 25, [1, 2])
+    # diff_eq = gd.Kepler(t_0=0, t_end=25, y_0=[0.5, 0, 0, np.sqrt(3)])
+    diff_eq = gd.VanDerPol(t_0=0, t_end=25, y_0=[1, 2])
     device = "cpu"
     model = NN_model.NeuralNetwork(diff_eq.num_y)
-    # model.load_state_dict(torch.load("../trained_model/eq_van_der_model_Adam_1_2_1000p_noise1.pth"))
-    model.load_state_dict(torch.load("eq_van_der_model_Adam_no_noise_1_2_1000p_100ep_lr5_10_4.pth"))
+    model.load_state_dict(torch.load("../trained_model/vanderpol_50_lr_5e-4_no_noise.pth"))
+    # model.load_state_dict(torch.load("VanderPol_5e4_1000p_30ep.pth"))
+    # model.load_state_dict(torch.load("eq_van_der_model_Adam_no_noise_1_2_1000p_100ep_lr5_10_4.pth"))
     model.eval()
 
     t = np.arange(0, 25, 0.1)
     data_integrate = diff_eq.integrate(t_points=t)
     # print(data_integrate)
     r, n = r_n_error(model, data_integrate, diff_eq.func)
-    plt.plot(data_integrate[:-1, 0], r[:, 0], label="R of y1")
-    plt.plot(data_integrate[:-1, 0], n[:, 0], "--", label="N of y1")
-    plt.plot(data_integrate[:-1, 0], r[:, 1], label="R of y2")
-    plt.plot(data_integrate[:-1, 0], n[:, 1], "--", label="N of y2")
-    plt.title("R and N")
-    plt.legend()
-    plt.show()
-
+    plot_r_and_n(diff_eq.num_y, data_integrate, r, n, "R and N")
+    # plot_r_and_n_Kepler(data_integrate, r, n, "R and N for p", " R and N for q")
 
 
 if __name__ == '__main__':
