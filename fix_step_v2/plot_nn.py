@@ -5,21 +5,6 @@ import NN_model
 import torch
 
 
-class Diff_eq_0(gd.DifferentialEquation):
-    def func(self, t, y):
-        return -y
-
-
-class Diff_eq_1(gd.DifferentialEquation):
-    def func(self, x, y):
-        return np.array([y[0] - y[0]*y[1], -y[1] + y[0]*y[1]])
-
-
-class Diff_eq_2(gd.DifferentialEquation):
-    def func(self, t, y):
-        return 3/2 * y/(t+1) + np.sqrt(t+1)
-
-
 def r_n_error(model, data, func):
     r = []
     n = []
@@ -45,43 +30,55 @@ def r_n_error(model, data, func):
     return r, n
 
 
+def plot_r_and_n(num_y, t, r, n, title):
+    for i in range(num_y):
+        plt.plot(t[:-1, 0], r[:, i], label="R of y"+str(i+1))
+        plt.plot(t[:-1, 0], n[:, i], "--", label="N of y" + str(i + 1))
+
+    plt.title(title)
+    plt.legend()
+    plt.show()
+
+
+def plot_r_and_n_Kepler(t, r, n, title_p, title_q):
+    plt.subplot(1, 2, 1)
+    for i in range(2):
+        plt.plot(t[:-1, 0], r[:, i], label="R of p" + str(i + 1))
+        plt.plot(t[:-1, 0], n[:, i], "--", label="N of p" + str(i + 1))
+    plt.title(title_p)
+    plt.xlabel("t values")
+    plt.ylabel("Error")
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    for i in range(2, 4):
+        plt.plot(t[:-1, 0], r[:, i], label="R of q" + str(i-1))
+        plt.plot(t[:-1, 0], n[:, i], "--", label="N of q" + str(i-1))
+
+    plt.title(title_q)
+    plt.xlabel("t values")
+    plt.ylabel("Error")
+
+    plt.legend()
+    plt.show()
+
+
 def main():
-    diff_eq = Diff_eq_2(0, 10, [1])
+    # diff_eq = gd.Kepler(t_0=0, t_end=25, y_0=[0.5, 0, 0, np.sqrt(3)])
+    diff_eq = gd.VanDerPol(t_0=0, t_end=25, y_0=[1, 2])
     device = "cpu"
     model = NN_model.NeuralNetwork(diff_eq.num_y)
-    model.load_state_dict(torch.load("eq_2_model_Adam_with_noise_01.pth"))
+    model.load_state_dict(torch.load("../trained_model/vanderpol_50_lr_5e-4_no_noise.pth"))
+    # model.load_state_dict(torch.load("VanderPol_5e4_1000p_30ep.pth"))
+    # model.load_state_dict(torch.load("eq_van_der_model_Adam_no_noise_1_2_1000p_100ep_lr5_10_4.pth"))
     model.eval()
 
-    t2 = np.arange(0, 10, 0.1)
-    y = np.zeros((2, len(t2)))
-    y[:, 0] = [1]
-    for i in range(len(t2)-1):
-        h = t2[i+1] - t2[i]
-        # print(y[i, 0])
-        # data = torch.tensor([t2[i], t2[i+1], y[0, i], y[1, i]]).to(device).float()
-        data = torch.tensor([t2[i], t2[i + 1], y[0, i]]).to(device).float()
-        nn_e = model(data).cpu()
-        nn_e = nn_e.detach().numpy()
-        y[:, i+1] = y[:, i] + h*diff_eq.func(t2[i], y[:, i]) + h**2 * nn_e
-
-    t = np.arange(0, 10, 0.1)
+    t = np.arange(0, 25, 0.1)
     data_integrate = diff_eq.integrate(t_points=t)
     # print(data_integrate)
     r, n = r_n_error(model, data_integrate, diff_eq.func)
-    plt.plot(data_integrate[:-1, 0], r[:, 0], label="R of y1")
-    plt.plot(data_integrate[:-1, 0], n[:, 0], "--", label="N of y1")
-    # plt.plot(data_integrate[:-1, 0], r[:, 1], label="R of y2")
-    # plt.plot(data_integrate[:-1, 0], n[:, 1], "--", label="N of y2")
-    plt.legend()
-    plt.show()
-
-    plt.plot(t2, y[0, :], "--", label='DEM, prediction y1')
-    # plt.plot(t2, y[1, :], "--", label='DEM, prediction y2')
-    plt.plot(data_integrate[:, 0], data_integrate[:, 1], label='Exact y1')
-    # plt.plot(data_integrate[:, 0], data_integrate[:, 2], label='Exact y2')
-    plt.legend()
-    plt.show()
-
+    plot_r_and_n(diff_eq.num_y, data_integrate, r, n, "R and N")
+    # plot_r_and_n_Kepler(data_integrate, r, n, "R and N for p", " R and N for q")
 
 
 if __name__ == '__main__':
