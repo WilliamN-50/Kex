@@ -86,7 +86,7 @@ class TrainerTester:
                 # Compute prediction- and truncation- error
                 model_data = data[:2+self.diff_eq.num_y]
                 prediction[index, :] = self.model(model_data)
-                target[index, :] = _local_truncation_error(data, self.diff_eq.func, self.diff_eq.num_y)
+                target[index, :] = euler_local_truncation_error(data, self.diff_eq.func, self.diff_eq.num_y)
                 processed_data += 1
 
             loss = self.loss_fn(prediction, target)
@@ -116,7 +116,7 @@ class TrainerTester:
                 # Compute prediction- and truncation- error
                 model_data = data[:2+self.diff_eq.num_y]
                 prediction[index, :] = self.model(model_data)
-                target[index, :] = _local_truncation_error(data, self.diff_eq.func, self.diff_eq.num_y)
+                target[index, :] = euler_local_truncation_error(data, self.diff_eq.func, self.diff_eq.num_y)
 
             test_loss = self.loss_fn(prediction, target)
             self.test_loss.append(test_loss)
@@ -136,9 +136,12 @@ class TrainerTester:
         plt.xlabel("Epoch")
         plt.show()
 
+    def save_loss(self, filename):
+        np.save(filename, self.test_loss)
 
-def _local_truncation_error(data, func, num_y):
-    # R function
+
+def euler_local_truncation_error(data, func, num_y):
+    # lte function
     data = data.cpu()
     h = data[1] - data[0]
     y_first = data[2:2+num_y]
@@ -151,7 +154,7 @@ def main():
     t_0 = 0
     t_end = 10
     y_0 = [1, 2]
-    number_t = 100
+    number_t = 1000
     noise = 0
 
     # Construct data
@@ -161,10 +164,11 @@ def main():
     in_data = diff_eq.reshape_data(data)
 
     # Properties of model
-    epochs = 10
-    batch_size = 500
+    epochs = 50
+    batch_size = 250
     lr = 1e-4
-    save_file = "test.pth"
+    model_file = "test.pth"
+    loss_file = "loss.npy"
 
     device = "cpu"
     print(f"Using {device} device")
@@ -179,7 +183,8 @@ def main():
         train.nn_train()
         train.nn_test()
 
-    train.save_model(save_file)
+    train.save_model(model_file)
+    train.save_loss(loss_file)
     train.plot_loss()
 
 
