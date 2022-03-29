@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import differentialequations as deq
 import diffeqnetwork as den
 
-
+# fix size of returned list
+# check rel error in plot solution
+# Kepler plot
 def model_lte(model, in_data, func):
     """
     ____________________________
@@ -53,10 +55,10 @@ def exact_lte(in_data, func):
         y_first = in_data[i, 1:]
         y_second = in_data[i+1, 1:]
 
-        lte_fe = 1/h**2 * (y_second - y_first - h * func(t_first, y_first))
-        lte_ie = 1/h**2 * (y_second - y_first - h * func(t_second, y_second))
-        lte_ec_v = 1/h**2 * (y_second[idx_v] - y_first[idx_v] - h * func(t_first, y_first)[idx_v])
-        lte_ec_x = 1/h**2 * (y_second[idx_x] - y_first[idx_x] - h * func(t_first, y_second)[idx_x])
+        lte_fe = 1 / h**2 * (y_second - y_first - h * func(t_first, y_first))
+        lte_ie = 1 / h**2 * (y_second - y_first - h * func(t_second, y_second))
+        lte_ec_v = 1 / h**2 * (y_second[idx_v] - y_first[idx_v] - h * func(t_first, y_first)[idx_v])
+        lte_ec_x = 1 / h**2 * (y_second[idx_x] - y_first[idx_x] - h * func(t_first, y_second)[idx_x])
         lte_ec = np.concatenate((lte_ec_x, lte_ec_v), axis=None)
 
         lte_forward_euler.append(list(lte_fe))
@@ -70,24 +72,19 @@ def exact_lte(in_data, func):
     return lte_forward_euler, lte_implicit_euler, lte_euler_cromer
 
 
-def _plot_lte(t, lte, num_y, label, marker):
+def plot_lte(t, lte, num_y, label, marker):
     for i in range(num_y):
         plt.plot(t[:-1], lte[:, i], marker, label=f"{label} of y{i+1}")
 
 
-def plot_multi_lte(t, lte_list, num_y, title, labels, markers):
+def plot_multi_lte(t, lte_list, num_y, labels, markers):
     """
     ____________________________
     Plots the local truncation errors in lte_list.
     ____________________________
     """
     for i in range(len(lte_list)):
-        _plot_lte(t, lte_list[i], num_y, labels[i], markers[i])
-    plt.title(title)
-    plt.xlabel("t values")
-    plt.ylabel("Error")
-    plt.legend()
-    plt.show()
+        plot_lte(t, lte_list[i], num_y, labels[i], markers[i])
 
 
 def plot_lte_hamiltonian(t, lte, nn_lte, num_y, title_p, title_q):
@@ -122,7 +119,6 @@ def main():
     t_0 = 0
     t_end = 25
     y_0 = [1, 2]
-    h = 0.01
     diff_eq = deq.VanDerPol(t_0, t_end, y_0)
 
     # Load model
@@ -133,6 +129,7 @@ def main():
     model.eval()
 
     # Construct data
+    h = 0.01
     t = np.arange(t_0, t_end, h)
     y = diff_eq.integrate(t_points=t)
 
@@ -150,7 +147,13 @@ def main():
 
     title = "Local Truncation Error"
 
-    plot_multi_lte(t, lte_model, diff_eq.num_y, title, label_model, markers_model)
+    plot_multi_lte(t, lte_model, diff_eq.num_y, label_model, markers_model)
+
+    plt.title(title)
+    plt.xlabel("t values")
+    plt.ylabel("Error")
+    plt.legend()
+    plt.show()
 
 
 if __name__ == '__main__':

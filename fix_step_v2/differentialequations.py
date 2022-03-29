@@ -84,7 +84,7 @@ class _TestODE1(DifferentialEquation):
 class _TestODE2(DifferentialEquation):
     @staticmethod
     def func(t, y):
-        return 3/2 * y/(t+1) + np.sqrt(t+1)
+        return 3/2 * y / (t+1) + np.sqrt(t+1)
 
 
 class LinearODE1(DifferentialEquation):
@@ -102,13 +102,13 @@ class LodkaVolterra(DifferentialEquation):
 class Kepler(DifferentialEquation):
     @staticmethod
     def func(t, y):
-        return np.array([y[2], y[3], -y[0]/(y[0]**2 + y[1]**2)**(3/2), -y[1]/(y[0]**2 + y[1]**2)**(3/2)])
+        return np.array([y[2], y[3], -y[0] / (y[0]**2 + y[1]**2)**(3/2), -y[1] / (y[0]**2 + y[1]**2)**(3/2)])
 
 
 class VanDerPol(DifferentialEquation):
     @staticmethod
     def func(t, y, mu=1):
-        return np.array([y[1], mu*(1-y[0]**2)*y[1]-y[0]])
+        return np.array([y[1], mu*(1 - y[0]**2) * y[1] - y[0]])
 
 
 def main():

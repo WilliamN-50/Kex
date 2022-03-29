@@ -1,4 +1,4 @@
-import NN_model
+import diffeqnetwork
 import torch
 from torch import nn
 import numpy as np

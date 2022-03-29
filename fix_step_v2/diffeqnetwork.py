@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 import matplotlib.pyplot as plt
-import differentialequations as de
+import differentialequations as deq
 
 
 # Define model
@@ -167,8 +167,8 @@ def main():
     noise = 0
 
     # Construct data
-    diff_eq = de.VanDerPol(t_0=t_0, t_end=t_end, y_0=y_0)
-    t_points = de.create_random_t(t_0, t_end, number_t=number_t)
+    diff_eq = deq.VanDerPol(t_0=t_0, t_end=t_end, y_0=y_0)
+    t_points = deq.create_random_t(t_0, t_end, number_t=number_t)
     data = diff_eq.integrate(t_points=t_points, noise_level=noise)
     in_data = diff_eq.reshape_data(data)
 
