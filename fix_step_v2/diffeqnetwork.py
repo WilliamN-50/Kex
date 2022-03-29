@@ -68,7 +68,7 @@ class TrainerTester:
     def nn_train(self, verbose=False):
         """
         ____________________________
-        Training function to train the NeuralNetwork.
+        Function to train the NeuralNetwork.
         ____________________________
         """
         self.model.train()
@@ -86,7 +86,7 @@ class TrainerTester:
                 # Compute prediction- and truncation- error
                 model_data = data[:2+self.diff_eq.num_y]
                 prediction[index, :] = self.model(model_data)
-                target[index, :] = _local_truncation_error(data, self.diff_eq.func, self.diff_eq.num_y)
+                target[index, :] = euler_local_truncation_error(data.cpu(), self.diff_eq.func, self.diff_eq.num_y)
                 processed_data += 1
 
             loss = self.loss_fn(prediction, target)
@@ -103,7 +103,7 @@ class TrainerTester:
     def nn_test(self, verbose=False):
         """
         ____________________________
-        Testing function to test the training of  the NeuralNetwork.
+        Function to test the training of the NeuralNetwork.
         ____________________________
         """
         self.model.eval()
@@ -116,7 +116,7 @@ class TrainerTester:
                 # Compute prediction- and truncation- error
                 model_data = data[:2+self.diff_eq.num_y]
                 prediction[index, :] = self.model(model_data)
-                target[index, :] = _local_truncation_error(data, self.diff_eq.func, self.diff_eq.num_y)
+                target[index, :] = euler_local_truncation_error(data.cpu(), self.diff_eq.func, self.diff_eq.num_y)
 
             test_loss = self.loss_fn(prediction, target)
             self.test_loss.append(test_loss)
@@ -129,6 +129,11 @@ class TrainerTester:
         torch.save(self.model.state_dict(), filename)
 
     def plot_loss(self, title="Test Loss"):
+        """
+        ____________________________
+        Plot the loss from the training.
+        ____________________________
+        """
         epoch = np.arange(1, len(self.test_loss)+1)
         plt.plot(epoch, self.test_loss)
         plt.title(title)
@@ -136,10 +141,17 @@ class TrainerTester:
         plt.xlabel("Epoch")
         plt.show()
 
+    def save_loss(self, filename):
+        np.save(filename, self.test_loss)
 
-def _local_truncation_error(data, func, num_y):
-    # R function
-    data = data.cpu()
+
+def euler_local_truncation_error(data, func, num_y):
+    """
+    ____________________________
+    Calculates the local truncation error of the Euler forward method.
+    ____________________________
+    """
+    # lte function
     h = data[1] - data[0]
     y_first = data[2:2+num_y]
     y_second = data[2+num_y:]
@@ -162,9 +174,10 @@ def main():
 
     # Properties of model
     epochs = 10
-    batch_size = 500
+    batch_size = 250
     lr = 1e-4
-    save_file = "test.pth"
+    model_file = "test.pth"
+    loss_file = "loss.npy"
 
     device = "cpu"
     print(f"Using {device} device")
@@ -179,7 +192,8 @@ def main():
         train.nn_train()
         train.nn_test()
 
-    train.save_model(save_file)
+    train.save_model(model_file)
+    train.save_loss(loss_file)
     train.plot_loss()
 
 
