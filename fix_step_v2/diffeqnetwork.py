@@ -161,7 +161,7 @@ def euler_local_truncation_error(data, func, num_y):
 def main():
     # Properties of training & test data
     t_0 = 0
-    t_end = 10
+    t_end = 15
     y_0 = [1, 2]
     number_t = 100
     noise = 0
@@ -173,9 +173,9 @@ def main():
     in_data = diff_eq.reshape_data(data)
 
     # Properties of model
-    epochs = 10
-    batch_size = 250
-    lr = 1e-4
+    epochs = 50
+    batch_size = 100
+    lr = 1e-5
     model_file = "test.pth"
     loss_file = "loss.npy"
 
