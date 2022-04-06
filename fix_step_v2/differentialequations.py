@@ -30,10 +30,13 @@ class DifferentialEquation(metaclass=abc.ABCMeta):
         """
         solution = solve_ivp(self.func, [self.t_0, self.t_end], self.y_0, method=method, t_eval=t_points, rtol=rel_tol)
         rows = len(solution.t)
-        noise = np.random.uniform(-1 * noise_level, noise_level, solution.y.T.shape)
-        out_data = np.zeros((rows, 1 + self.num_y))
+        out_data = np.empty((rows, 1 + self.num_y))
         out_data[:, 0] = solution.t.T
-        out_data[:, 1:] = solution.y.T + noise
+        if noise_level > 0:
+            noise = np.random.uniform(-1 * noise_level, noise_level, solution.y.T.shape)
+            out_data[:, 1:] = solution.y.T + noise
+        else:
+            out_data[:, 1:] = solution.y.T
 
         if save_to_file:
             np.save(out_file, out_data)
@@ -48,7 +51,7 @@ class DifferentialEquation(metaclass=abc.ABCMeta):
         ____________________________
         """
         rows = len(in_data)
-        out_data = np.zeros((rows*(rows-1)//2, 2+2*self.num_y))  # 2 = len([xi, xi+1])
+        out_data = np.empty((rows*(rows-1)//2, 2+2*self.num_y))  # 2 = len([xi, xi+1])
         n = 0
         for i in range(rows):
             for j in range(i+1, rows):
@@ -115,7 +118,7 @@ def main():
     diff_eq = VanDerPol(t_0=0, t_end=10, y_0=[1, 2])
     t_points = create_random_t(0, 10, number_t=100)
     data = diff_eq.integrate(t_points=t_points, noise_level=0)
-    reshaped_data = diff_eq.reshape_data(data, out_file='outfile.npy', save_to_file=True)
+    reshaped_data = diff_eq.reshape_data(data, out_file='outfile.npy', save_to_file=False)
     print(reshaped_data)
 
 

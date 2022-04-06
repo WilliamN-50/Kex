@@ -113,7 +113,8 @@ def main():
     # diff_eq = deq.Kepler(t_0, t_end, y_0)
 
     # Load model
-    filename = "test.pth"
+    # filename = "vanderpol_60_lr_1e-4_bs_100.pth"
+    filename = "test2.pth"
     # filename = "../trained_model/Kepler_no_noise_0_10_1000p_100ep_1e3.pth"
     model = den.NeuralNetwork(diff_eq.num_y)
     model.load_state_dict(torch.load(filename))

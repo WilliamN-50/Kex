@@ -208,14 +208,14 @@ def comp_rel_error(y_prediction, y_target):
 def main():
     # Properties of differential equation
     t_0 = 0
-    t_end = 50
+    t_end = 25
     y_0 = [1, 2]
     diff_eq = deq.VanDerPol(t_0, t_end, y_0)
     # y_0 = [0.5, 0, 0, np.sqrt(3)]
     # diff_eq = deq.Kepler(t_0, t_end, y_0)
 
     # Load model
-    filename = "test2.pth"
+    filename = "test3.pth"
     # filename = "../trained_model/Kepler_no_noise_0_10_1000p_100ep_1e3.pth"
     model = den.NeuralNetwork(diff_eq.num_y)
     model.load_state_dict(torch.load(filename))

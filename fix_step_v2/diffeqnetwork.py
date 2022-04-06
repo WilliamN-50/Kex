@@ -47,10 +47,10 @@ class TrainerTester:
     Trains and tests the NeuralNetwork model.
     ____________________________
     """
-    def __init__(self, model, diff_eq, in_data, batch_size, device, train_ratio=0.85, lr=1e-3):
+    def __init__(self, model, diff_eq, in_data, batch_size, device, train_ratio=0.85, lr=1e-3, random_split=True):
         self.model = model
         self.diff_eq = diff_eq
-        self.train_data, self.test_data = self._split_train_test(in_data, train_ratio, device)
+        self.train_data, self.test_data = self._split_train_test(in_data, train_ratio, device, random_split)
         self.batch_size = batch_size
         self.loss_fn = nn.L1Loss(reduction="mean")
         self.test_loss = []
@@ -58,8 +58,9 @@ class TrainerTester:
         self.device = device
 
     @ staticmethod
-    def _split_train_test(in_data, train_ratio, device):
-        np.random.shuffle(in_data)
+    def _split_train_test(in_data, train_ratio, device, random_split):
+        if random_split:
+            np.random.shuffle(in_data)
         num_train_data = int(len(in_data)*train_ratio)
         train_data = torch.from_numpy(in_data[:num_train_data]).float().to(device)
         test_data = torch.from_numpy(in_data[num_train_data:]).float().to(device)
@@ -161,9 +162,9 @@ def euler_local_truncation_error(data, func, num_y):
 def main():
     # Properties of training & test data
     t_0 = 0
-    t_end = 15
+    t_end = 10
     y_0 = [1, 2]
-    number_t = 100
+    number_t = 1000
     noise = 0
 
     # Construct data
@@ -173,8 +174,8 @@ def main():
     in_data = diff_eq.reshape_data(data)
 
     # Properties of model
-    epochs = 50
-    batch_size = 100
+    epochs = 60
+    batch_size = 5000
     lr = 1e-5
     model_file = "test.pth"
     loss_file = "loss.npy"
