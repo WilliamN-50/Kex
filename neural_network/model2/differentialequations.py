@@ -117,7 +117,7 @@ def main():
     diff_eq = VanDerPol(t_0=0, t_end=10, y_0=[1, 2])
     t_points = create_random_t(0, 10, number_t=100)
     data = diff_eq.integrate(t_points=t_points, noise_level=0)
-    reshaped_data = diff_eq.reshape_data(data, out_file='../../fix_step_v2/outfile.npy', save_to_file=False)
+    reshaped_data = diff_eq.reshape_data(data, out_file='outfile.npy', save_to_file=False)
     print(reshaped_data)
 
 
