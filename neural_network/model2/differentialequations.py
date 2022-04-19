@@ -47,19 +47,18 @@ class DifferentialEquation(metaclass=abc.ABCMeta):
         """
         ____________________________
         Build new data by combining data points from in_data.
-        The output can be used to train and test the NeuralNetwork model.
+        The output can be used to train and test neural networks in model2.
         ____________________________
         """
         rows = len(in_data)
-        out_data = np.empty((rows*(rows-1)//2, 2+2*self.num_y))  # 2 = len([xi, xi+1])
+        out_data = np.empty((rows*(rows-1)//2, 1+3*self.num_y))
         n = 0
         for i in range(rows):
             for j in range(i+1, rows):
-                out_data[n][0] = in_data[i][0]
-                out_data[n][1] = in_data[j][0]
-                for k in range(self.num_y):
-                    out_data[n][2+k] = in_data[i][1+k]
-                    out_data[n][2+self.num_y+k] = in_data[j][1+k]
+                out_data[n][0] = in_data[j][0] - in_data[i][0]
+                out_data[n][1:1+self.num_y] = in_data[i][1:]
+                out_data[n][1+self.num_y:1+2*self.num_y] = self.func(in_data[i][0], in_data[i][1:])
+                out_data[n][1+2*self.num_y:1+3*self.num_y] = in_data[j][1:]
                 n += 1
         if save_to_file:
             np.save(out_file, out_data)
@@ -118,7 +117,7 @@ def main():
     diff_eq = VanDerPol(t_0=0, t_end=10, y_0=[1, 2])
     t_points = create_random_t(0, 10, number_t=100)
     data = diff_eq.integrate(t_points=t_points, noise_level=0)
-    reshaped_data = diff_eq.reshape_data(data, out_file='outfile.npy', save_to_file=False)
+    reshaped_data = diff_eq.reshape_data(data, out_file='../../fix_step_v2/outfile.npy', save_to_file=False)
     print(reshaped_data)
 
 

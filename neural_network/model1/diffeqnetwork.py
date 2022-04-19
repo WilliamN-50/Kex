@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 import matplotlib.pyplot as plt
-import differentialequations as deq
+from neural_network.model1 import differentialequations as deq
 
 
 # Define model
@@ -174,9 +174,9 @@ def main():
     in_data = diff_eq.reshape_data(data)
 
     # Properties of model
-    epochs = 60
-    batch_size = 5000
-    lr = 1e-5
+    epochs = 150
+    batch_size = 100
+    lr = 1e-6
     model_file = "test.pth"
     loss_file = "loss.npy"
 

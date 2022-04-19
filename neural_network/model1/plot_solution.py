@@ -2,8 +2,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-import differentialequations as deq
-import diffeqnetwork as den
+from neural_network.model1 import diffeqnetwork as den, differentialequations as deq
 
 
 def euler_method(model, t_0, t_end, y_0, h, diff_eq, deep=True):
@@ -26,7 +25,7 @@ def adaptive_euler(model, t_0, t_end, y_0, h, tol, diff_eq):
     h_list = []
 
     num_comp_norm = 0  # Number of extra times comp_norm is called for each loop
-    while t[-1] < t_end - h:
+    while t[-1] < t_end:
         norm, nn_e = comp_norm(model, t[-1], y[-1], h)
         if norm < tol:
             h = (tol / norm)**(1/2) * h * 0.9
@@ -44,6 +43,10 @@ def adaptive_euler(model, t_0, t_end, y_0, h, tol, diff_eq):
         t.append(t[-1] + h)
         h_list.append(h)
 
+    if t[-1] > t_end:
+        del t[-1]
+        del y[-1]
+        del h_list[-1]
     t = np.array(t)
     y = np.array(y)
     h_list = np.array(h_list)
@@ -96,7 +99,7 @@ def adaptive_implicit_euler(model, t_0, t_end, y_0, h, tol, diff_eq, secant_tol=
         return x - y_1 - h * diff_eq.func(t_2, x) + h**2 * nn_e  # Need to have + instead of -
 
     num_comp_norm = 0  # Number of extra times comp_norm is called for each loop
-    while t[-1] < t_end - h:
+    while t[-1] < t_end:
         norm, nn_e = comp_norm(model, t[-1], y[-1], h)
         if norm < tol:
             h = (tol / norm)**(1/2) * h * 0.9
@@ -119,6 +122,10 @@ def adaptive_implicit_euler(model, t_0, t_end, y_0, h, tol, diff_eq, secant_tol=
         t.append(t_2)
         h_list.append(h)
 
+    if t[-1] > t_end:
+        del t[-1]
+        del y[-1]
+        del h_list[-1]
     t = np.array(t)
     y = np.array(y)
     h_list = np.array(h_list)
@@ -208,15 +215,15 @@ def comp_rel_error(y_prediction, y_target):
 def main():
     # Properties of differential equation
     t_0 = 0
-    t_end = 25
+    t_end = 30
     y_0 = [1, 2]
     diff_eq = deq.VanDerPol(t_0, t_end, y_0)
     # y_0 = [0.5, 0, 0, np.sqrt(3)]
     # diff_eq = deq.Kepler(t_0, t_end, y_0)
 
     # Load model
-    filename = "test3.pth"
-    # filename = "../trained_model/Kepler_no_noise_0_10_1000p_100ep_1e3.pth"
+    filename = "../../fix_step_v2/test2.pth"
+    # filename = "../trained_model/Kepler_1000p_250batch_100ep_lr5e-4.pth"
     model = den.NeuralNetwork(diff_eq.num_y)
     model.load_state_dict(torch.load(filename))
     model.eval()
@@ -260,9 +267,10 @@ def main():
     plt.legend()
     plt.show()
 
-    # plot_diagram_hamiltonian(t_dem_fix, y_dem_fix, fix_data[:, 1:], diff_eq.num_y, "Euler Forward")
+    plot_diagram_hamiltonian(t_dem_fix, y_dem_fix, fix_data[:, 1:], diff_eq.num_y, "Euler Forward")
     # plot_diagram_phase_2d(y_dem_fix, fix_data[:, 1:], "Euler Forward")
     plt.show()
+    print(sum(h)/len(h))
 
 
 if __name__ == '__main__':

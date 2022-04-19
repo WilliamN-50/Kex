@@ -10,7 +10,7 @@ def plot_loss(loss):
 
 
 def main():
-    filename = "loss2.npy"
+    filename = "loss.npy"
     loss_data = np.load(filename)
     plot_loss(loss_data)
     plt.legend()
