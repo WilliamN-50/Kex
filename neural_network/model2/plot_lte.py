@@ -76,19 +76,19 @@ def plot_lte_hamiltonian(t, lte, nn_lte, num_y, title_p, title_q):
     """
     plt.subplot(1, 2, 1)
     for i in range(num_y//2):
-        plt.plot(t[:-1], lte[:, i], label="lte of p" + str(i+1))
-        plt.plot(t[:-1], nn_lte[:, i], "--", label="nn_lte of p" + str(i+1))
-    plt.title(title_p)
-    plt.xlabel("t values")
+        plt.plot(t[:-1], lte[:, i], label="lte of q" + str(i+1))
+        plt.plot(t[:-1], nn_lte[:, i], "--", label="nn_lte of q" + str(i+1))
+    plt.title(title_q)
+    plt.xlabel("t")
     plt.ylabel("Error")
     plt.legend()
 
     plt.subplot(1, 2, 2)
     for i in range(num_y//2, num_y):
-        plt.plot(t[:-1], lte[:, i], label="lte of q" + str(i+1-num_y//2))
-        plt.plot(t[:-1], nn_lte[:, i], "--", label="nn_lte of q" + str(i+1-num_y//2))
-    plt.title(title_q)
-    plt.xlabel("t values")
+        plt.plot(t[:-1], lte[:, i], label="lte of p" + str(i+1-num_y//2))
+        plt.plot(t[:-1], nn_lte[:, i], "--", label="nn_lte of p" + str(i+1-num_y//2))
+    plt.title(title_p)
+    plt.xlabel("t")
     plt.ylabel("Error")
     plt.legend()
 
@@ -96,25 +96,26 @@ def plot_lte_hamiltonian(t, lte, nn_lte, num_y, title_p, title_q):
 def main():
     # Properties of differential equation
     t_0 = 0
-    t_end = 50
-    y_0 = [1, 2]
-    diff_eq = deq.VanDerPol(t_0, t_end, y_0)
-    # y_0 = [0.5, 0, 0, np.sqrt(3)]
-    # diff_eq = deq.Kepler(t_0, t_end, y_0)
+    t_end = 30
+    # y_0 = [1, 2]
+    # y_0 = [1]
+    # diff_eq = deq.VanDerPol(t_0, t_end, y_0)
+    y_0 = [0.5, 0, 0, np.sqrt(3)]
+    diff_eq = deq.Kepler(t_0, t_end, y_0)
     # y_0 = [1]
     # diff_eq = t3._TestODE1(t_0, t_end, y_0)
     # diff_eq = t3.LinearODE1(t_0, t_end, y_0)
 
     # Load model
     # filename = "vanderpol_60_lr_1e-4_bs_100.pth"
-    filename = "test8.pth"
+    filename = "new_model2_Kepler_[0-10]_1000p_500batch_75ep_lr5e-4.pth"
     # filename = "../trained_model/Kepler_no_noise_0_10_1000p_100ep_1e3.pth"
     model = den.NeuralNetwork(diff_eq.num_y)
     model.load_state_dict(torch.load(filename))
     model.eval()
 
     # Construct data
-    h = 0.01
+    h = 0.1
     # h_bad = 4.5
     t = np.arange(t_0, t_end, h)
     y = diff_eq.integrate(t_points=t)
@@ -127,18 +128,18 @@ def main():
 
     # Model lte
     nn_lte, lte = model_lte(model, y, diff_eq.func)
-    label_model = ["lte", "nn_lte"]
+    label_model = ["reference LTE", "model LTE"]
     markers_model = ["-", "--"]
     lte_model = [lte, nn_lte]
 
-    title = "Local Truncation Error"
+    # title = "LTE of Van der Pol, model 2"
 
-    plot_multi_lte(t, lte_model, diff_eq.num_y, label_model, markers_model)
+    # plot_multi_lte(t, lte_model, diff_eq.num_y, label_model, markers_model)
     # plot_multi_lte(t, lte_exact, diff_eq.num_y, label_exact, markers_exact)
-    # plot_lte_hamiltonian(t, lte, nn_lte, diff_eq.num_y, "x^dot", "x")
+    plot_lte_hamiltonian(t, lte, nn_lte, diff_eq.num_y, "LTE of p, h=0.1, model 2", "LTE of q, h=0.1, model 2")
 
-    plt.title(title)
-    plt.xlabel("t values")
+    # plt.title(title)
+    plt.xlabel("t")
     plt.ylabel("Error")
     plt.legend()
     plt.show()
