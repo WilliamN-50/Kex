@@ -2,7 +2,8 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-from neural_network.model1 import diffeqnetwork as den, differentialequations as deq
+from neural_network.model import diffeqnetworkmodel1 as model1, diffeqnetworkmodel2 as model2
+from neural_network.model import differentialequations as deq
 
 
 def euler_method(model, t_0, t_end, y_0, h, diff_eq, deep=True):
@@ -11,11 +12,12 @@ def euler_method(model, t_0, t_end, y_0, h, diff_eq, deep=True):
     y[0, :] = y_0
 
     for i in range(len(t)-1):
+        func = diff_eq.func(t[i], y[i, :])
         if deep:
-            nn_e = calc_nn_lte(model, t[i], y[i, :], h)
-            y[i+1, :] = y[i, :] + h*diff_eq.func(t[i], y[i, :]) + h**2 * nn_e
+            nn_e = calc_nn_lte(model, t[i], h, y[i, :], func)
+            y[i+1, :] = y[i, :] + h * func + h**2 * nn_e
         else:
-            y[i+1, :] = y[i, :] + h * diff_eq.func(t[i], y[i, :])
+            y[i+1, :] = y[i, :] + h * func
     return t, y
 
 
@@ -26,27 +28,29 @@ def adaptive_euler(model, t_0, t_end, y_0, h, tol, diff_eq):
 
     num_comp_norm = 0  # Number of extra times comp_norm is called for each loop
     while t[-1] < t_end:
-        norm, nn_e = comp_norm(model, t[-1], y[-1], h)
+        t_1 = t[-1]
+        y_1 = np.array(y[-1])
+        func = diff_eq.func(t_1, y_1)
+        norm, nn_e = comp_norm(model, t_1, h, y_1, func)
+        num_comp_norm += 1
         if norm < tol:
             h = (tol / norm)**(1/2) * h * 0.9
-            norm, nn_e = comp_norm(model, t[-1], y[-1], h)
+            norm, nn_e = comp_norm(model, t_1, h, y_1, func)
             num_comp_norm += 1
 
         while norm > tol:
             h = (tol / norm)**(1/2) * h * 0.9
-            norm, nn_e = comp_norm(model, t[-1], y[-1], h)
+            norm, nn_e = comp_norm(model, t_1, h, y_1, func)
             num_comp_norm += 1
 
-        y_next = np.array(y[-1])
-        y_next = y_next + h * diff_eq.func(t[-1], y_next) + h**2 * nn_e
-        y.append(list(y_next))
-        t.append(t[-1] + h)
+        y_1 = y_1 + h * func + h**2 * nn_e
+        y.append(list(y_1))
+        t.append(t_1 + h)
         h_list.append(h)
 
-    if t[-1] > t_end:
-        del t[-1]
-        del y[-1]
-        del h_list[-1]
+    del t[-1]
+    del y[-1]
+    del h_list[-1]
     t = np.array(t)
     y = np.array(y)
     h_list = np.array(h_list)
@@ -81,10 +85,11 @@ def implicit_euler(model, t_0, t_end, y_0, h, diff_eq, tol=0.01, max_iter=1000, 
         t_1 = t[i]
         t_2 = t[i+1]
         y_1 = y[i, :]
-        nn_e = calc_nn_lte(model, t_1, y_1, h)
+        func = diff_eq.func(t_1, y_1)
+        nn_e = calc_nn_lte(model, t_1, h, y_1, func)
 
         # Implicit Euler + Secant Method
-        y_2_guess = y[i, :] + h * diff_eq.func(t_1, y[i, :])  # Step using Forward Euler
+        y_2_guess = y[i, :] + h * func + h**2 * nn_e  # Step using DEM
         y_temp = _secant_method(y_1, y_2_guess, _implicit_euler_func, tol=tol, max_iter=max_iter)
         y[i+1, :] = y_temp
     return t, y
@@ -100,46 +105,49 @@ def adaptive_implicit_euler(model, t_0, t_end, y_0, h, tol, diff_eq, secant_tol=
 
     num_comp_norm = 0  # Number of extra times comp_norm is called for each loop
     while t[-1] < t_end:
-        norm, nn_e = comp_norm(model, t[-1], y[-1], h)
+        t_1 = t[-1]
+        y_1 = np.array(y[-1])
+        func = diff_eq.func(t[-1], y_1)
+        norm, nn_e = comp_norm(model, t_1, h, y_1, func)
+        num_comp_norm += 1
         if norm < tol:
             h = (tol / norm)**(1/2) * h * 0.9
-            norm, nn_e = comp_norm(model, t[-1], y[-1], h)
+            norm, nn_e = comp_norm(model, t_1, h, y_1, func)
             num_comp_norm += 1
 
         while norm > tol:
             h = (tol / norm)**(1/2) * h * 0.9
-            norm, nn_e = comp_norm(model, t[-1], y[-1], h)
+            norm, nn_e = comp_norm(model, t_1, h, y_1, func)
             num_comp_norm += 1
 
-        t_1 = t[-1]
-        t_2 = t[-1] + h
-        y_1 = np.array(y[-1])
-
         # Implicit Euler + Secant Method
-        y_2_guess = y_1 + h * diff_eq.func(t_1, y_1)  # Step using Forward Euler
-        y_next = _secant_method(y_1, y_2_guess, _implicit_euler_func, tol=secant_tol, max_iter=max_iter)
-        y.append(list(y_next))
+        t_2 = t_1 + h
+        y_2_guess = y_1 + h * func + h**2 * nn_e  # Step using DEM
+        y_2 = _secant_method(y_1, y_2_guess, _implicit_euler_func, tol=secant_tol, max_iter=max_iter)
+        y.append(list(y_2))
         t.append(t_2)
         h_list.append(h)
 
-    if t[-1] > t_end:
-        del t[-1]
-        del y[-1]
-        del h_list[-1]
+    del t[-1]
+    del y[-1]
+    del h_list[-1]
     t = np.array(t)
     y = np.array(y)
     h_list = np.array(h_list)
     return t, y, h_list, num_comp_norm
 
 
-def comp_norm(model, t, y, h):
-    nn_e = calc_nn_lte(model, t, y, h)
+def comp_norm(model, t, h, y, func):
+    nn_e = calc_nn_lte(model, t, h, y, func)
     norm = np.amax(np.abs(nn_e)) * h**2
     return norm, nn_e
 
 
-def calc_nn_lte(model, t, y, h):
-    data = np.concatenate(([t, t+h], y), axis=0)
+def calc_nn_lte(model, t, h, y, func):
+    if type(model) == model1.NeuralNetworkModel1:
+        data = np.concatenate(([t, t+h], y), axis=0)
+    else:
+        data = np.concatenate(([h], y, func), axis=0)
     data = torch.tensor(data).float()
     nn_e = model(data)
     nn_e = nn_e.detach().numpy()
@@ -216,21 +224,21 @@ def main():
     # Properties of differential equation
     t_0 = 0
     t_end = 30
-    y_0 = [1, 2]
-    diff_eq = deq.VanDerPol(t_0, t_end, y_0)
-    # y_0 = [0.5, 0, 0, np.sqrt(3)]
-    # diff_eq = deq.Kepler(t_0, t_end, y_0)
+    # y_0 = [1, 2]
+    # diff_eq = deq.VanDerPol(t_0, t_end, y_0)
+    y_0 = [0.5, 0, 0, np.sqrt(3)]
+    diff_eq = deq.Kepler(t_0, t_end, y_0)
 
     # Load model
-    filename = "test.pth"
-    # filename = "../trained_model/Kepler_1000p_250batch_100ep_lr5e-4.pth"
-    model = den.NeuralNetwork(diff_eq.num_y)
+    filename = "../../trained_model/model2/model2_Kepler_1000p_500batch_75ep_lr5e-4.pth"
+    # filename = "../../trained_model/model 1 input[x, y]/Kepler_no_noise_0_10_1000p_75ep.pth"
+    model = model2.NeuralNetworkModel2(diff_eq.num_y)
     model.load_state_dict(torch.load(filename))
     model.eval()
 
     # Construct data (Adaptive)
     h_0 = 0.01
-    tol = 0.01
+    tol = 0.001
     t_dem_adap, y_dem_adap, h, n_comp = adaptive_euler(model=model, t_0=t_0, t_end=t_end, y_0=y_0, h=h_0, tol=tol,
                                                        diff_eq=diff_eq)
     adap_data = diff_eq.integrate(t_points=t_dem_adap)
@@ -267,8 +275,8 @@ def main():
     plt.legend()
     plt.show()
 
-    plot_diagram_hamiltonian(t_dem_fix, y_dem_fix, fix_data[:, 1:], diff_eq.num_y, "Euler Forward")
-    # plot_diagram_phase_2d(y_dem_fix, fix_data[:, 1:], "Euler Forward")
+    # plot_diagram_hamiltonian(t_dem_fix, y_dem_fix, fix_data[:, 1:], diff_eq.num_y, "Euler Forward")
+    plot_diagram_phase_2d(y_dem_fix, fix_data[:, 1:], "Euler Forward")
     plt.show()
     print(sum(h)/len(h))
 

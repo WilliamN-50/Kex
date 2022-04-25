@@ -2,19 +2,20 @@ import torch
 from torch import nn
 import numpy as np
 import matplotlib.pyplot as plt
-from neural_network.model1 import differentialequations as deq
+from neural_network.model import differentialequations as deq
 
 
 # Define model
-class NeuralNetwork(nn.Module):
+class NeuralNetworkModel1(nn.Module):
     """
     ____________________________
     The NeuralNetwork class.
     Constructs a NN model for predicting the local error of the Euler method.
+    Input = (t_i, t_j, y_i)
     ____________________________
     """
     def __init__(self, num_y):
-        super(NeuralNetwork, self).__init__()  # Take the init from nn.Module
+        super(NeuralNetworkModel1, self).__init__()  # Take the init from nn.Module
         self.linear_result_stack = nn.Sequential(
             nn.Linear(2+num_y, 80),  # 2 = len([xi, xi+1])
             nn.ReLU(),
@@ -40,11 +41,11 @@ class NeuralNetwork(nn.Module):
         return x
 
 
-class TrainerTester:
+class TrainerTesterModel1:
     """
     ____________________________
     The TrainerTester class.
-    Trains and tests the NeuralNetwork model.
+    Trains and tests the NeuralNetworkModel1.
     ____________________________
     """
     def __init__(self, model, diff_eq, in_data, batch_size, device, train_ratio=0.85, lr=1e-3, random_split=True):
@@ -171,7 +172,7 @@ def main():
     diff_eq = deq.VanDerPol(t_0=t_0, t_end=t_end, y_0=y_0)
     t_points = deq.create_random_t(t_0, t_end, number_t=number_t)
     data = diff_eq.integrate(t_points=t_points, noise_level=noise)
-    in_data = diff_eq.reshape_data(data)
+    in_data = deq.reshape_data_model1(data)
 
     # Properties of model
     epochs = 150
@@ -184,8 +185,8 @@ def main():
     print(f"Using {device} device")
 
     # Building, training and testing model
-    model = NeuralNetwork(diff_eq.num_y).to(device)
-    train = TrainerTester(model=model, diff_eq=diff_eq, in_data=in_data, batch_size=batch_size, device=device, lr=lr)
+    model = NeuralNetworkModel1(diff_eq.num_y).to(device)
+    train = TrainerTesterModel1(model=model, diff_eq=diff_eq, in_data=in_data, batch_size=batch_size, device=device, lr=lr)
     for i in range(epochs):
         print("____________________")
         print("epoch:{}".format(i + 1))

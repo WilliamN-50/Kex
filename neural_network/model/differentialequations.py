@@ -43,27 +43,54 @@ class DifferentialEquation(metaclass=abc.ABCMeta):
         else:
             return out_data
 
-    def reshape_data(self, in_data, out_file=None, save_to_file=False):
-        """
-        ____________________________
-        Build new data by combining data points from in_data.
-        The output can be used to train and test neural networks in model2.
-        ____________________________
-        """
-        rows = len(in_data)
-        out_data = np.empty((rows*(rows-1)//2, 1+3*self.num_y))
-        n = 0
-        for i in range(rows):
-            for j in range(i+1, rows):
-                out_data[n][0] = in_data[j][0] - in_data[i][0]
-                out_data[n][1:1+self.num_y] = in_data[i][1:]
-                out_data[n][1+self.num_y:1+2*self.num_y] = self.func(in_data[i][0], in_data[i][1:])
-                out_data[n][1+2*self.num_y:1+3*self.num_y] = in_data[j][1:]
-                n += 1
-        if save_to_file:
-            np.save(out_file, out_data)
-        else:
-            return out_data
+
+def reshape_data_model1(in_data, out_file=None, save_to_file=False):
+    """
+    ____________________________
+    Build new data by combining data points from in_data.
+    The output can be used to train and test NeuralNetworkModel1.
+    ____________________________
+    """
+    num_y = len(in_data[0])-1
+    rows = len(in_data)
+    out_data = np.empty((rows*(rows-1)//2, 2+2*num_y))  # 2 = len([xi, xi+1])
+    n = 0
+    for i in range(rows):
+        for j in range(i+1, rows):
+            out_data[n][0] = in_data[i][0]
+            out_data[n][1] = in_data[j][0]
+            for k in range(num_y):
+                out_data[n][2+k] = in_data[i][1+k]
+                out_data[n][2+num_y+k] = in_data[j][1+k]
+            n += 1
+    if save_to_file:
+        np.save(out_file, out_data)
+    else:
+        return out_data
+
+
+def reshape_data_model2(in_data, func, out_file=None, save_to_file=False):
+    """
+    ____________________________
+    Build new data by combining data points from in_data.
+    The output can be used to train and test NeuralNetworkModel2.
+    ____________________________
+    """
+    num_y = len(in_data[0])-1
+    rows = len(in_data)
+    out_data = np.empty((rows*(rows-1)//2, 1+3*num_y))
+    n = 0
+    for i in range(rows):
+        for j in range(i+1, rows):
+            out_data[n][0] = in_data[j][0] - in_data[i][0]
+            out_data[n][1:1+num_y] = in_data[i][1:]
+            out_data[n][1+num_y:1+2*num_y] = func(in_data[i][0], in_data[i][1:])
+            out_data[n][1+2*num_y:1+3*num_y] = in_data[j][1:]
+            n += 1
+    if save_to_file:
+        np.save(out_file, out_data)
+    else:
+        return out_data
 
 
 def create_random_t(t_start, t_end, number_t):
@@ -117,7 +144,7 @@ def main():
     diff_eq = VanDerPol(t_0=0, t_end=10, y_0=[1, 2])
     t_points = create_random_t(0, 10, number_t=100)
     data = diff_eq.integrate(t_points=t_points, noise_level=0)
-    reshaped_data = diff_eq.reshape_data(data, out_file='outfile.npy', save_to_file=False)
+    reshaped_data = reshape_data_model2(data, diff_eq.func, out_file='outfile.npy', save_to_file=False)
     print(reshaped_data)
 
 

@@ -2,19 +2,20 @@ import torch
 from torch import nn
 import numpy as np
 import matplotlib.pyplot as plt
-from neural_network.model2 import differentialequations as deq
+from neural_network.model import differentialequations as deq
 
 
 # Define model
-class NeuralNetwork(nn.Module):
+class NeuralNetworkModel2(nn.Module):
     """
     ____________________________
     The NeuralNetwork class.
     Constructs a NN model for predicting the local error of the Euler method.
+    Input = (h_i, y_i, f(t_i, y_i))
     ____________________________
     """
     def __init__(self, num_y):
-        super(NeuralNetwork, self).__init__()  # Take the init from nn.Module
+        super(NeuralNetworkModel2, self).__init__()  # Take the init from nn.Module
         self.linear_result_stack = nn.Sequential(
             nn.Linear(1+2*num_y, 80),
             nn.ReLU(),
@@ -40,11 +41,11 @@ class NeuralNetwork(nn.Module):
         return x
 
 
-class TrainerTester:
+class TrainerTesterModel2:
     """
     ____________________________
     The TrainerTester class.
-    Trains and tests the NeuralNetwork model.
+    Trains and tests the NeuralNetworkModel2.
     ____________________________
     """
     def __init__(self, model, diff_eq, in_data, batch_size, device, train_ratio=0.85, lr=1e-3, random_split=True):
@@ -163,32 +164,36 @@ def euler_local_truncation_error(data, num_y):
 def main():
     # Properties of training & test data
     t_0 = 0
-    t_end = 5
-    y_0 = [1, 2]
+    t_end = 10
+    t_start = 0
+    # y_0 = [1, 2]
     # y_0 = [1]
-    number_t = 1000
+    y_0 = [0.5, 0, 0, np.sqrt(3)]
+    number_t = 100
     noise = 0
 
     # Construct data
-    diff_eq = deq.VanDerPol(t_0=t_0, t_end=t_end, y_0=y_0)
-    # diff_eq = t3.LinearODE1(t_0=t_0, t_end=t_end, y_0=y_0)
-    t_points = deq.create_random_t(t_0, t_end, number_t=number_t)
+    # diff_eq = deq.VanDerPol(t_0=t_0, t_end=t_end, y_0=y_0)
+    # diff_eq = deq.LinearODE1(t_0=t_0, t_end=t_end, y_0=y_0)
+    diff_eq = deq.Kepler(t_0=t_0, t_end=t_end, y_0=y_0)
+    t_points = deq.create_random_t(t_start, t_end, number_t=number_t)
     data = diff_eq.integrate(t_points=t_points, noise_level=noise)
-    in_data = diff_eq.reshape_data(data)
+    # data = data[]
+    in_data = deq.reshape_data_model2(data, diff_eq.func)
 
     # Properties of model
-    epochs = 60
+    epochs = 1000
     batch_size = 100
     lr = 1e-4
-    model_file = "test.pth"
-    loss_file = "loss.npy"
+    model_file = "../model2/test2.pth"
+    loss_file = "../model2/loss2.npy"
 
     device = "cpu"
     print(f"Using {device} device")
 
     # Building, training and testing model
-    model = NeuralNetwork(diff_eq.num_y).to(device)
-    train = TrainerTester(model=model, diff_eq=diff_eq, in_data=in_data, batch_size=batch_size, device=device, lr=lr)
+    model = NeuralNetworkModel2(diff_eq.num_y).to(device)
+    train = TrainerTesterModel2(model=model, diff_eq=diff_eq, in_data=in_data, batch_size=batch_size, device=device, lr=lr)
     for i in range(epochs):
         print("____________________")
         print("epoch:{}".format(i + 1))
