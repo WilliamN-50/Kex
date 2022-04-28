@@ -106,9 +106,7 @@ def main():
     diff_eq = deq.Kepler(t_0, t_end, y_0)
 
     # Load model
-    filename = "../../trained_model/model2/model2_Kepler_1000p_500batch_75ep_lr5e-4.pth"
-    # filename = "model1_Kepler_1000p_500batch_75ep_lr5e-4.pth"
-    # filename = "../trained_model/Kepler_no_noise_0_10_1000p_100ep_1e3.pth"
+    filename = "test.pth"
     model = model2.NeuralNetworkModel2(diff_eq.num_y)
     model.load_state_dict(torch.load(filename))
     model.eval()
@@ -134,6 +132,8 @@ def main():
 
     # plot_multi_lte(t, lte_model, diff_eq.num_y, label_model, markers_model)
     # plot_multi_lte(t, lte_exact, diff_eq.num_y, label_exact, markers_exact)
+
+    # Use for Kepler
     plot_lte_hamiltonian(t, lte, nn_lte, diff_eq.num_y, "LTE of p, h=0.1, model 1", "LTE of q, h=0.1, model 1")
 
     # plt.title("LTE of Van der Pol, model 1")

@@ -167,46 +167,46 @@ def plot_diagram(t, y, num_y, label, marker):
         plt.plot(t, y[:, i], marker, label=label + str(i+1), markerfacecolor='none')
 
 
-def plot_diagram_hamiltonian(t, y, y_exact, num_y, method_label, title_p="p", title_q="q"):
+def plot_diagram_hamiltonian(t, y, num_y, label, marker, title_p=" p", title_q=" q", log=False):
     """
     ____________________________
-    Plots the local truncation errors for a hamiltonian system.
+    Plots the absolut error for a hamiltonian system.
     ____________________________
     """
     plt.subplot(1, 2, 1)
     for i in range(num_y//2):
-        plt.plot(t, y_exact[:, i], label=method_label + " exact p" + str(i+1))
-        plt.plot(t, y[:, i], "--", label=method_label + " p" + str(i+1))
-    plt.title(title_p)
+        plt.plot(t, y[:, i], marker, label=label + title_q + str(i+1))
+    plt.title("Absolut Error of" + title_q)
     plt.xlabel("t")
-    plt.ylabel("y")
+    plt.ylabel("Error")
     plt.legend()
+    if log:
+        plt.yscale("log")
 
     plt.subplot(1, 2, 2)
     for i in range(num_y//2, num_y):
-        plt.plot(t, y_exact[:, i], label=method_label + " exact q" + str(i+1-num_y//2))
-        plt.plot(t, y[:, i], "--", label=method_label + " q" + str(i+1-num_y//2))
-    plt.title(title_q)
+        plt.plot(t, y[:, i], marker, label=label + title_p + str(i+1-num_y//2))
+    plt.title("Absolut Error of" + title_p)
     plt.xlabel("t")
-    plt.ylabel("y")
+    plt.ylabel("Error")
     plt.legend()
+    if log:
+        plt.yscale("log")
 
 
-def plot_diagram_phase_2d(y, y_exact, method_label, title_p="p", title_q="q"):
+def plot_diagram_phase_2d(y, label, marker, title_p=" p", title_q=" q"):
     plt.subplot(1, 2, 1)
-    plt.plot(y_exact[:, 0], y_exact[:, 1], label=method_label + " exact")
-    plt.plot(y[:, 0], y[:, 1], "--", label=method_label + " model")
-    plt.title(title_p)
-    plt.xlabel("p1")
-    plt.ylabel("p2")
-    plt.legend()
-
-    plt.subplot(1, 2, 2)
-    plt.plot(y_exact[:, 2], y_exact[:, 3], label=method_label + " exact")
-    plt.plot(y[:, 2], y[:, 3], "--", label=method_label + " model")
+    plt.plot(y[:, 0], y[:, 1], marker, label=label + title_q)
     plt.title(title_q)
     plt.xlabel("q1")
     plt.ylabel("q2")
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(y[:, 2], y[:, 3], marker, label=label + title_p)
+    plt.title(title_p)
+    plt.xlabel("p1")
+    plt.ylabel("p2")
     plt.legend()
 
 
@@ -230,8 +230,7 @@ def main():
     diff_eq = deq.Kepler(t_0, t_end, y_0)
 
     # Load model
-    filename = "../../trained_model/model2/model2_Kepler_1000p_500batch_75ep_lr5e-4.pth"
-    # filename = "../../trained_model/model 1 input[x, y]/Kepler_no_noise_0_10_1000p_75ep.pth"
+    filename = "test.pth"
     model = model2.NeuralNetworkModel2(diff_eq.num_y)
     model.load_state_dict(torch.load(filename))
     model.eval()
@@ -242,11 +241,19 @@ def main():
     t_dem_adap, y_dem_adap, h, n_comp = adaptive_euler(model=model, t_0=t_0, t_end=t_end, y_0=y_0, h=h_0, tol=tol,
                                                        diff_eq=diff_eq)
     adap_data = diff_eq.integrate(t_points=t_dem_adap)
+    t_Idem_adap, y_Idem_adap, Ih, In_comp = adaptive_implicit_euler(model=model, t_0=t_0, t_end=t_end, y_0=y_0, h=h_0, tol=tol,
+                                                       diff_eq=diff_eq)
+    Iadap_data = diff_eq.integrate(t_points=t_Idem_adap)
+
 
     # Construct data (Fix)
-    h_fix = min(h)
+    # h_fix = min(h)  # Compare with adaptive step-size method
+    h_fix = h_0  # Not compare with adaptive step-size method
     t_dem_fix, y_dem_fix = euler_method(model=model, t_0=t_0, t_end=t_end, y_0=y_0, h=h_fix, diff_eq=diff_eq,
                                         deep=True)
+    t_Idem_fix, y_Idem_fix = implicit_euler(model=model, t_0=t_0, t_end=t_end, y_0=y_0, h=h_fix, diff_eq=diff_eq,
+                                        deep=True)
+    Ifix_data = diff_eq.integrate(t_points=t_Idem_fix)
     t_euler_fix, y_euler_fix = euler_method(model=model, t_0=t_0, t_end=t_end, y_0=y_0, h=h_fix, diff_eq=diff_eq,
                                             deep=False)
     fix_data = diff_eq.integrate(t_points=t_dem_fix)
@@ -255,28 +262,41 @@ def main():
     print("t DEM adap", len(t_dem_adap))
     print("t DEM fix", len(t_dem_fix))
     print("t Euler fix", len(t_euler_fix))
+    print("t Implicit fix", len(t_Idem_fix))
 
     # Construct relative data
     rel_dem_adap = comp_abs_error(y_dem_adap, adap_data[:, 1:])
     rel_dem_fix = comp_abs_error(y_dem_fix, fix_data[:, 1:])
     # rel_euler_fix = comp_abs_error(y_euler_fix, fix_data[:, 1:])
+    rel_Idem_fix = comp_abs_error(y_Idem_fix, Ifix_data[:, 1:])
+    rel_Idem_adap = comp_abs_error(y_Idem_adap, Iadap_data[:, 1:])
 
-    plot_diagram(t_dem_adap, rel_dem_adap, diff_eq.num_y, label="DEM adaptive y", marker="-")
-    plot_diagram(t_dem_fix, rel_dem_fix, diff_eq.num_y, label="DEM fix y", marker="--")
+    # plot_diagram(t_dem_adap, rel_dem_adap, diff_eq.num_y, label="DEM adaptive y", marker="-")
+    # plot_diagram(t_dem_fix, rel_dem_fix, diff_eq.num_y, label="DEM fix y", marker="--")
     # plot_diagram(t_euler_fix, rel_euler_fix, diff_eq.num_y, label="Euler fix y", marker=".")
-    plt.title("Relative error")
-    plt.legend()
+    # plt.title("Relative error")
+    # plt.legend()
+    # plt.show()
+
+    # plot_diagram(t_dem_adap, y_dem_adap, diff_eq.num_y, label="DEM adaptive y", marker="--.")
+    # plot_diagram(t_dem_fix, y_dem_fix, diff_eq.num_y, label="DEM fix y", marker="--")
+    # plot_diagram(fix_data[:, 0], fix_data[:, 1:], diff_eq.num_y, label="Reference y", marker="")
+    # plt.title("Solution of the ODE")
+    # plt.legend()
+    # plt.show()
+
+    # Use for Kepler
+    plot_diagram_hamiltonian(t_dem_fix, rel_dem_fix, diff_eq.num_y, "DEM fix", marker="-", log=True)
+    plot_diagram_hamiltonian(t_Idem_fix, rel_Idem_fix, diff_eq.num_y, "DIEM fix", marker="--", log=True)
+    # plot_diagram_hamiltonian(t_dem_adap, rel_dem_adap, diff_eq.num_y, "DEM adaptive", marker="-", log=True)
+    # plot_diagram_hamiltonian(t_Idem_adap, rel_Idem_adap, diff_eq.num_y, "DIEM adap", marker="--", log=True)
     plt.show()
 
-    plot_diagram(t_dem_adap, y_dem_adap, diff_eq.num_y, label="DEM adaptive y", marker="o--")
-    plot_diagram(t_dem_fix, y_dem_fix, diff_eq.num_y, label="DEM fix y", marker="--")
-    plot_diagram(fix_data[:, 0], fix_data[:, 1:], diff_eq.num_y, label="Exact y", marker="")
-    plt.title("Solution of the ODE")
-    plt.legend()
-    plt.show()
-
-    # plot_diagram_hamiltonian(t_dem_fix, y_dem_fix, fix_data[:, 1:], diff_eq.num_y, "Euler Forward")
-    plot_diagram_phase_2d(y_dem_fix, fix_data[:, 1:], "Euler Forward")
+    plot_diagram_phase_2d(y_dem_fix, "DEM fix", marker="--")
+    plot_diagram_phase_2d(y_Idem_fix, "DIEM fix", marker="--.")
+    # plot_diagram_phase_2d(y_dem_adap, "DEM adaptive", marker="--")
+    # plot_diagram_phase_2d(y_Idem_adap, "DIEM adaptive", marker="--.")
+    plot_diagram_phase_2d(fix_data[:, 1:], "Reference", marker="")
     plt.show()
     print(sum(h)/len(h))
 

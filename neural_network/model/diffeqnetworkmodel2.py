@@ -185,8 +185,8 @@ def main():
     epochs = 1000
     batch_size = 100
     lr = 1e-4
-    model_file = "../model2/test2.pth"
-    loss_file = "../model2/loss2.npy"
+    model_file = "model2_test.pth"
+    loss_file = "model2_loss.npy"
 
     device = "cpu"
     print(f"Using {device} device")
