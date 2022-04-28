@@ -4,11 +4,11 @@ Two kinds of the neural network models are implemented. All of them have 8 hidde
 indispensable input and output layers. Each hidden layer has $80$ neurons and uses the $ReLU$ function as the activation
 function.
 
-## Model
-1. [**Model 1**]() uses the input x = (t_i, t_j, y_i).
-2. [**Model 2**]() uses the input x = (h_i, y_i, f(t_i, y_i)).
+## [**Model**](https://github.com/WilliamN-50/Kex/tree/main/neural_network)
+1. Model 1 uses the input x = (t_i, t_j, y_i).
+2. Model 2 uses the input x = (h_i, y_i, f(t_i, y_i)).
 
-## Training of the model
+## [**Training of the model**](https://github.com/WilliamN-50/Kex/tree/main/neural_network)
 The loss function used in the training is L1, and the optimization algorithm selected is Adam.
 
 ## Example of the differential equation
