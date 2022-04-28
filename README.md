@@ -1,7 +1,7 @@
 # Solving Differential Equations using Adaptive Size with Neural Network
 The Source Code of the bachelor degree project.
 Two kinds of the neural network models are implemented. All of them have 8 hidden layers in addition to the 
-indispensable input and output layers. Each hidden layer has $80$ neurons and uses the $ReLU$ function as the activation
+indispensable input and output layers. Each hidden layer has 80 neurons and uses the ReLU function as the activation
 function.
 
 ## [**Model**](https://github.com/WilliamN-50/Kex/tree/main/neural_network)
