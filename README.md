@@ -5,8 +5,8 @@ indispensable input and output layers. Each hidden layer has $80$ neurons and us
 function.
 
 ## Model
-1. [**Model 1**]() uses the input $\vec{x} = (t_i, t_j, y_i)$.
-2. [**Model 2**]() uses the input $\vec{x} = (h_i, y_i, f(t_i, y_i))$.
+1. [**Model 1**]() uses the input x = (t_i, t_j, y_i).
+2. [**Model 2**]() uses the input x = (h_i, y_i, f(t_i, y_i)).
 
 ## Training of the model
 The loss function used in the training is L1, and the optimization algorithm selected is Adam.
