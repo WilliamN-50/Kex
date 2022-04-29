@@ -10,7 +10,7 @@ class NeuralNetworkModel2(nn.Module):
     """
     ____________________________
     The NeuralNetwork class.
-    Constructs a NN model for predicting the local error of the Euler method.
+    Constructs a neural network for predicting the local truncation error of the Euler method.
     Input = (h_i, y_i, f(t_i, y_i))
     ____________________________
     """
@@ -45,7 +45,7 @@ class TrainerTesterModel2:
     """
     ____________________________
     The TrainerTester class.
-    Trains and tests the NeuralNetworkModel2.
+    Trains and tests NeuralNetworkModel2.
     ____________________________
     """
     def __init__(self, model, diff_eq, in_data, batch_size, device, train_ratio=0.85, lr=1e-3, random_split=True):
@@ -70,7 +70,7 @@ class TrainerTesterModel2:
     def nn_train(self, verbose=False):
         """
         ____________________________
-        Function to train the NeuralNetwork.
+        Function to train NeuralNetworkModel2.
         ____________________________
         """
         self.model.train()
@@ -105,7 +105,7 @@ class TrainerTesterModel2:
     def nn_test(self, verbose=False):
         """
         ____________________________
-        Function to test the training of the NeuralNetwork.
+        Function to test the training of NeuralNetworkModel2.
         ____________________________
         """
         self.model.eval()
@@ -150,7 +150,7 @@ class TrainerTesterModel2:
 def euler_local_truncation_error(data, num_y):
     """
     ____________________________
-    Calculates the local truncation error of the Euler forward method.
+    Calculates the local truncation error of the Euler method.
     ____________________________
     """
     # lte function
@@ -161,24 +161,20 @@ def euler_local_truncation_error(data, num_y):
     return 1/h**2 * (y_second - y_first - h * func)
 
 
+# Example
 def main():
     # Properties of training & test data
     t_0 = 0
     t_end = 10
     t_start = 0
-    # y_0 = [1, 2]
-    # y_0 = [1]
     y_0 = [0.5, 0, 0, np.sqrt(3)]
-    number_t = 100
+    number_t = 1000
     noise = 0
 
     # Construct data
-    # diff_eq = deq.VanDerPol(t_0=t_0, t_end=t_end, y_0=y_0)
-    # diff_eq = deq.LinearODE1(t_0=t_0, t_end=t_end, y_0=y_0)
     diff_eq = deq.Kepler(t_0=t_0, t_end=t_end, y_0=y_0)
     t_points = deq.create_random_t(t_start, t_end, number_t=number_t)
     data = diff_eq.integrate(t_points=t_points, noise_level=noise)
-    # data = data[]
     in_data = deq.reshape_data_model2(data, diff_eq.func)
 
     # Properties of model
