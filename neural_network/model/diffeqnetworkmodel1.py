@@ -159,6 +159,7 @@ def euler_local_truncation_error(data, func, num_y):
     y_second = data[2+num_y:]
     return 1/h**2 * (y_second - y_first - h * func(data[0], y_first))
 
+
 # Example 
 def main():
     # Properties of training & test data
