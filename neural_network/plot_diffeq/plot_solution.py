@@ -333,13 +333,13 @@ def main():
     plot_diagram_hamiltonian(t_dem_fix, rel_dem_fix, diff_eq.num_y, "DEM fix", marker="-", log=True)
     plot_diagram_hamiltonian(t_idem_fix, rel_idem_fix, diff_eq.num_y, "DIEM fix", marker="--", log=True)
     # plot_diagram_hamiltonian(t_dem_adap, rel_dem_adap, diff_eq.num_y, "DEM adaptive", marker="-", log=True)
-    # plot_diagram_hamiltonian(t_Idem_adap, rel_Idem_adap, diff_eq.num_y, "DIEM adap", marker="--", log=True)
+    # plot_diagram_hamiltonian(t_idem_adap, rel_idem_adap, diff_eq.num_y, "DIEM adap", marker="--", log=True)
     plt.show()
 
     plot_diagram_phase_2d(y_dem_fix, "DEM fix", marker="--")
     plot_diagram_phase_2d(y_idem_fix, "DIEM fix", marker="--.")
     # plot_diagram_phase_2d(y_dem_adap, "DEM adaptive", marker="--")
-    # plot_diagram_phase_2d(y_Idem_adap, "DIEM adaptive", marker="--.")
+    # plot_diagram_phase_2d(y_idem_adap, "DIEM adaptive", marker="--.")
     plot_diagram_phase_2d(fix_data[:, 1:], "Reference", marker="")
     plt.show()
 
