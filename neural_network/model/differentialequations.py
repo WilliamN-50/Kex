@@ -7,7 +7,7 @@ class DifferentialEquation(metaclass=abc.ABCMeta):
     """
     ____________________________
     The DifferentialEquation class.
-    Generates data for the NeuralNetwork model.
+    Generates data for NeuralNetworkModel.
     ____________________________
     """
     def __init__(self, t_0, t_end, y_0):
@@ -140,11 +140,12 @@ class VanDerPol(DifferentialEquation):
         return np.array([y[1], mu*(1 - y[0]**2) * y[1] - y[0]])
 
 
+# Example
 def main():
     diff_eq = VanDerPol(t_0=0, t_end=10, y_0=[1, 2])
     t_points = create_random_t(0, 10, number_t=100)
     data = diff_eq.integrate(t_points=t_points, noise_level=0)
-    reshaped_data = reshape_data_model2(data, diff_eq.func, out_file='outfile.npy', save_to_file=False)
+    reshaped_data = reshape_data_model2(data, diff_eq.func, save_to_file=False)
     print(reshaped_data)
 
 
