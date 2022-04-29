@@ -159,7 +159,7 @@ def euler_local_truncation_error(data, func, num_y):
     y_second = data[2+num_y:]
     return 1/h**2 * (y_second - y_first - h * func(data[0], y_first))
 
-
+# Example 
 def main():
     # Properties of training & test data
     t_0 = 0
@@ -178,8 +178,8 @@ def main():
     epochs = 150
     batch_size = 100
     lr = 1e-6
-    model_file = "model1_test.pth"
-    loss_file = "model2_loss.npy"
+    model_file = "model1_lte.pth"
+    loss_file = "model1_loss.npy"
 
     device = "cpu"
     print(f"Using {device} device")
