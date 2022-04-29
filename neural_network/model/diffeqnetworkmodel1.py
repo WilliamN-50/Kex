@@ -10,7 +10,7 @@ class NeuralNetworkModel1(nn.Module):
     """
     ____________________________
     The NeuralNetwork class.
-    Constructs a NN model for predicting the local error of the Euler method.
+    Constructs a neural network for predicting the local truncation error of the Euler method.
     Input = (t_i, t_j, y_i)
     ____________________________
     """
@@ -45,7 +45,7 @@ class TrainerTesterModel1:
     """
     ____________________________
     The TrainerTester class.
-    Trains and tests the NeuralNetworkModel1.
+    Trains and tests NeuralNetworkModel1.
     ____________________________
     """
     def __init__(self, model, diff_eq, in_data, batch_size, device, train_ratio=0.85, lr=1e-3, random_split=True):
@@ -70,7 +70,7 @@ class TrainerTesterModel1:
     def nn_train(self, verbose=False):
         """
         ____________________________
-        Function to train the NeuralNetwork.
+        Function to train NeuralNetworkModel1.
         ____________________________
         """
         self.model.train()
@@ -105,7 +105,7 @@ class TrainerTesterModel1:
     def nn_test(self, verbose=False):
         """
         ____________________________
-        Function to test the training of the NeuralNetwork.
+        Function to test the training of NeuralNetworkModel1.
         ____________________________
         """
         self.model.eval()
@@ -150,7 +150,7 @@ class TrainerTesterModel1:
 def euler_local_truncation_error(data, func, num_y):
     """
     ____________________________
-    Calculates the local truncation error of the Euler forward method.
+    Calculates the local truncation error of the Euler method.
     ____________________________
     """
     # lte function
