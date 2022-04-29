@@ -181,7 +181,7 @@ def main():
     epochs = 1000
     batch_size = 100
     lr = 1e-4
-    model_file = "model2_test.pth"
+    model_file = "model2_lte.pth"
     loss_file = "model2_loss.npy"
 
     device = "cpu"
