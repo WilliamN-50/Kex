@@ -8,7 +8,7 @@ from neural_network.model import differentialequations as deq
 def model_lte(model, in_data, func):
     """
     ____________________________
-    Calculates the local truncation error of the NeuralNetwork model and Euler forward.
+    Calculates the local truncation error of NeuralNetworkModel and the Euler method.
     ____________________________
     """
     num_y = len(in_data[0])-1
@@ -32,7 +32,7 @@ def model_lte(model, in_data, func):
 def exact_lte(in_data, func):
     """
     ____________________________
-    Calculates the local truncation error of Euler forward, implicit Euler, and Euler-Cromer.
+    Calculates the local truncation error of Euler forward and implicit Euler.
     ____________________________
     """
     lte_forward_euler = np.empty((len(in_data)-1, len(in_data[0])-1))
@@ -94,19 +94,16 @@ def plot_lte_hamiltonian(t, lte, nn_lte, num_y, title_p, title_q):
     plt.legend()
 
 
+# Example
 def main():
     # Properties of differential equation
     t_0 = 0
     t_end = 30
-    # y_0 = [1]
-    # diff_eq = deq.LinearODE1(t_0, t_end, y_0)
-    # y_0 = [1, 2]
-    # diff_eq = deq.VanDerPol(t_0, t_end, y_0)
-    y_0 = [0.5, 0, 0, np.sqrt(3)]
-    diff_eq = deq.Kepler(t_0, t_end, y_0)
+    y_0 = [1]
+    diff_eq = deq.LinearODE1(t_0, t_end, y_0)
 
     # Load model
-    filename = "test.pth"
+    filename = "model2_lte.pth"
     model = model2.NeuralNetworkModel2(diff_eq.num_y)
     model.load_state_dict(torch.load(filename))
     model.eval()
@@ -127,20 +124,18 @@ def main():
     label_model = ["reference LTE", "model LTE"]
     markers_model = ["-", "--"]
     lte_model = [lte, nn_lte]
-
-    # title = "LTE of Linear ODE, model 1"
-
-    # plot_multi_lte(t, lte_model, diff_eq.num_y, label_model, markers_model)
+    
+    
     # plot_multi_lte(t, lte_exact, diff_eq.num_y, label_exact, markers_exact)
-
-    # Use for Kepler
-    plot_lte_hamiltonian(t, lte, nn_lte, diff_eq.num_y, "LTE of p, h=0.1, model 1", "LTE of q, h=0.1, model 1")
-
-    # plt.title("LTE of Van der Pol, model 1")
+    plot_multi_lte(t, lte_model, diff_eq.num_y, label_model, markers_model)
     plt.xlabel("t")
     plt.ylabel("Error")
     plt.legend()
     plt.show()
+    
+    # For Kepler
+    # plot_lte_hamiltonian(t, lte, nn_lte, diff_eq.num_y, "LTE of p, h=0.1, model 1", "LTE of q, h=0.1, model 1")
+    # plt.show()
 
 
 if __name__ == '__main__':
