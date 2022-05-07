@@ -21,7 +21,7 @@ class DifferentialEquation(metaclass=abc.ABCMeta):
     def func(x, y):
         pass
 
-    def integrate(self, method="RK45", rel_tol=10e-6, t_points=None, noise_level=0.0, out_file=None,
+    def integrate(self, method="RK45", rel_tol=1e-6, t_points=None, noise_level=0.0, out_file=None,
                   save_to_file=False):
         """
         ____________________________
