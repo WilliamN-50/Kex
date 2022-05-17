@@ -10,7 +10,7 @@ class NeuralNetworkModel1(nn.Module):
     """
     ____________________________
     The NeuralNetwork class.
-    Constructs a neural network for predicting the local truncation error of the Euler method.
+    Constructs a neural network for predicting the residual of the Euler method.
     Input = (t_i, t_j, y_i)
     ____________________________
     """
@@ -88,7 +88,7 @@ class TrainerTesterModel1:
                 # Compute prediction- and truncation- error
                 model_data = data[:2+self.diff_eq.num_y]
                 prediction[index, :] = self.model(model_data)
-                target[index, :] = euler_local_truncation_error(data.cpu(), self.diff_eq.func, self.diff_eq.num_y)
+                target[index, :] = euler_residual(data.cpu(), self.diff_eq.func, self.diff_eq.num_y)
                 processed_data += 1
 
             loss = self.loss_fn(prediction, target)
@@ -118,7 +118,7 @@ class TrainerTesterModel1:
                 # Compute prediction- and truncation- error
                 model_data = data[:2+self.diff_eq.num_y]
                 prediction[index, :] = self.model(model_data)
-                target[index, :] = euler_local_truncation_error(data.cpu(), self.diff_eq.func, self.diff_eq.num_y)
+                target[index, :] = euler_residual(data.cpu(), self.diff_eq.func, self.diff_eq.num_y)
 
             test_loss = self.loss_fn(prediction, target)
             self.test_loss.append(test_loss)
@@ -147,13 +147,13 @@ class TrainerTesterModel1:
         np.save(filename, self.test_loss)
 
 
-def euler_local_truncation_error(data, func, num_y):
+def euler_residual(data, func, num_y):
     """
     ____________________________
-    Calculates the local truncation error of the Euler method.
+    Calculates the residual of the Euler method.
     ____________________________
     """
-    # lte function
+    # residual function
     h = data[1] - data[0]
     y_first = data[2:2+num_y]
     y_second = data[2+num_y:]
@@ -179,7 +179,7 @@ def main():
     epochs = 150
     batch_size = 100
     lr = 1e-6
-    model_file = "model1_lte.pth"
+    model_file = "model1_residual.pth"
     loss_file = "model1_loss.npy"
 
     device = "cpu"

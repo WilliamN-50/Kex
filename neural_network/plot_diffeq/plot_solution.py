@@ -19,7 +19,7 @@ def euler_method(model, t_0, t_end, y_0, h, diff_eq, deep=True):
     for i in range(len(t)-1):
         func = diff_eq.func(t[i], y[i, :])
         if deep:
-            nn_e = calc_nn_lte(model, t[i], h, y[i, :], func)
+            nn_e = calc_nn_residual(model, t[i], h, y[i, :], func)
             y[i+1, :] = y[i, :] + h * func + h**2 * nn_e
         else:
             y[i+1, :] = y[i, :] + h * func
@@ -101,7 +101,7 @@ def implicit_euler(model, t_0, t_end, y_0, h, diff_eq, tol=0.01, max_iter=1000, 
         t_2 = t[i+1]
         y_1 = y[i, :]
         func = diff_eq.func(t_1, y_1)
-        nn_e = calc_nn_lte(model, t_1, h, y_1, func)
+        nn_e = calc_nn_residual(model, t_1, h, y_1, func)
 
         # Implicit Euler + Secant Method
         y_2_guess = y[i, :] + h * func + h**2 * nn_e  # Step using DEM
@@ -163,12 +163,12 @@ def comp_norm(model, t, h, y, func):
     Computes the norm for the adaptive step-size method.
     ____________________________
     """
-    nn_e = calc_nn_lte(model, t, h, y, func)
+    nn_e = calc_nn_residual(model, t, h, y, func)
     norm = np.amax(np.abs(nn_e)) * h**2
     return norm, nn_e
 
 
-def calc_nn_lte(model, t, h, y, func):
+def calc_nn_residual(model, t, h, y, func):
     """
     ____________________________
     Computes the output of NeuralNetworkModel.
@@ -187,8 +187,8 @@ def calc_nn_lte(model, t, h, y, func):
 def _exact_norm(t_first, y_first, h, diff_eq):
     solution = solve_ivp(diff_eq.func, [t_first, t_first + h], y_first)
     y_second = solution.y[:, -1]
-    lte = y_second - y_first - h * diff_eq.func(t_first, y_first)
-    norm = np.amax(np.abs(lte))
+    residual = y_second - y_first - h * diff_eq.func(t_first, y_first)
+    norm = np.amax(np.abs(residual))
     return norm
 
 
@@ -274,7 +274,7 @@ def main():
     diff_eq = deq.Kepler(t_0, t_end, y_0)
 
     # Load model
-    filename = "model2_lte.pth"
+    filename = "model2_residual.pth"
     model = model2.NeuralNetworkModel2(diff_eq.num_y)
     model.load_state_dict(torch.load(filename))
     model.eval()

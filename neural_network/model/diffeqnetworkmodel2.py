@@ -10,7 +10,7 @@ class NeuralNetworkModel2(nn.Module):
     """
     ____________________________
     The NeuralNetwork class.
-    Constructs a neural network for predicting the local truncation error of the Euler method.
+    Constructs a neural network for predicting the residual of the Euler method.
     Input = (h_i, y_i, f(t_i, y_i))
     ____________________________
     """
@@ -88,7 +88,7 @@ class TrainerTesterModel2:
                 # Compute prediction- and truncation- error
                 model_data = data[:1+2*self.diff_eq.num_y]
                 prediction[index, :] = self.model(model_data)
-                target[index, :] = euler_local_truncation_error(data.cpu(), self.diff_eq.num_y)
+                target[index, :] = euler_residual(data.cpu(), self.diff_eq.num_y)
                 processed_data += 1
 
             loss = self.loss_fn(prediction, target)
@@ -118,7 +118,7 @@ class TrainerTesterModel2:
                 # Compute prediction- and truncation- error
                 model_data = data[:1+2*self.diff_eq.num_y]
                 prediction[index, :] = self.model(model_data)
-                target[index, :] = euler_local_truncation_error(data.cpu(), self.diff_eq.num_y)
+                target[index, :] = euler_residual(data.cpu(), self.diff_eq.num_y)
 
             test_loss = self.loss_fn(prediction, target)
             self.test_loss.append(test_loss)
@@ -147,13 +147,13 @@ class TrainerTesterModel2:
         np.save(filename, self.test_loss)
 
 
-def euler_local_truncation_error(data, num_y):
+def euler_residual(data, num_y):
     """
     ____________________________
-    Calculates the local truncation error of the Euler method.
+    Calculates the residual of the Euler method.
     ____________________________
     """
-    # lte function
+    # residual function
     h = data[0]
     y_first = data[1:1+num_y]
     func = data[1+num_y:1+2*num_y]
@@ -181,7 +181,7 @@ def main():
     epochs = 1000
     batch_size = 100
     lr = 1e-4
-    model_file = "model2_lte.pth"
+    model_file = "model2_residual.pth"
     loss_file = "model2_loss.npy"
 
     device = "cpu"
