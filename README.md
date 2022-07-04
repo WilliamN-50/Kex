@@ -1,5 +1,5 @@
 # Solving Differential Equations using Data-Driven Adaptive Numerical Method
-This code is made for a bachelor degree project. The completed thesis can be found on the following [link](https://www.diva-portal.org/smash/record.jsf?dswid=3770&pid=diva2%3A1680279&c=11&searchType=UNDERGRADUATE&language=sv&query=&af=%5B%22topOrganisationId%3A177%22%2C%22categoryId%3A11501%22%2C%22dateIssued%3A2022%22%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%7B%22categoryId%22%3A%2211501%22%7D%2C%7B%22thesisLevel%22%3A%22M2%22%7D%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all).
+This code is made for a bachelor degree project. The thesis can be found on the following [link](https://www.diva-portal.org/smash/record.jsf?dswid=3770&pid=diva2%3A1680279&c=11&searchType=UNDERGRADUATE&language=sv&query=&af=%5B%22topOrganisationId%3A177%22%2C%22categoryId%3A11501%22%2C%22dateIssued%3A2022%22%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%7B%22categoryId%22%3A%2211501%22%7D%2C%7B%22thesisLevel%22%3A%22M2%22%7D%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all).
 
 ## Model
 The nerual networks designed in this code predict the residual for a numerical method. 
